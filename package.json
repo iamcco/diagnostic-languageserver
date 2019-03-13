@@ -1,0 +1,24 @@
+{
+  "name": "diagnostic-languageserver",
+  "version": "1.0.0",
+  "description": "diagnostic language server",
+  "main": "./lib/index.js",
+  "repository": "git@github.com:iamcco/diagnostic-languageserver.git",
+  "author": "iamcco <ooiss@qq.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p ./",
+    "watch": "tsc -w -p ./"
+  },
+  "bin": {
+    "diagnostic-languageserver": "./lib/index.js"
+  },
+  "dependencies": {
+    "tslib": "^1.9.3",
+    "vscode-languageserver": "^5.3.0-next.1"
+  },
+  "devDependencies": {
+    "typescript": "^3.3.3333",
+    "@types/node": "^11.11.3"
+  }
+}
