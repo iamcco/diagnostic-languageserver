@@ -1,12 +1,12 @@
 import { TextDocument, PublishDiagnosticsParams, DiagnosticSeverity, Diagnostic } from 'vscode-languageserver';
 
-import { IConfigItem } from './types';
+import { ILinterConfig } from './types';
 import { executeFile } from './util';
 import HunkStream from './hunkStream';
 
 export async function handleDiagnostic (
   textDocument: TextDocument,
-  config: IConfigItem
+  config: ILinterConfig
 ): Promise<PublishDiagnosticsParams> {
   const text = textDocument.getText();
   const {

@@ -6,7 +6,7 @@ import {
 } from 'vscode-languageserver';
 
 import { IConfig } from './types';
-import { handleDiagnostic } from './handle';
+import { next, unsubscribe } from './stream';
 
 // create connection by command argv
 const connection: IConnection = createConnection();
@@ -31,20 +31,23 @@ connection.onInitialize((param: InitializeParams) => {
 });
 
 // document change or open
-documents.onDidChangeContent(async ( change ) => {
+documents.onDidChangeContent(( change ) => {
   const textDocument = change.document
-  const configItem = config[textDocument.languageId]
-  if (configItem) {
-    try {
-      const diagnostics =  await handleDiagnostic(textDocument, configItem)
-      if (diagnostics) {
-        connection.sendDiagnostics(diagnostics);
-      }
-    } catch (error) {
-      connection.console.log(`Handle Diagnostic Error: ${error.message}`)
-    }
+  const { linters = {}, filetypes = {} } = config
+  const linter = filetypes[textDocument.languageId]
+  if (!linter) {
+    return
   }
+  const configItem = linters[linter]
+  if (!configItem) {
+    return
+  }
+  next(textDocument, connection, configItem)
 });
+
+documents.onDidClose((evt) => {
+  unsubscribe(evt.document)
+})
 
 // listen for document's open/close/change
 documents.listen(connection);

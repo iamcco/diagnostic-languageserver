@@ -11,8 +11,9 @@ yarn global add diagnostic-languageserver
 ## Document
 
 ``` javascript
-"fileType": {
+"linter": {
   "command": "vint",                    // linter command
+  "debounce": 100,                      // debounce time
   "args": [ "--enable-neovim", "-"],    // args
   "offsetLine": 0,                      // offsetline
   "offsetColumn": 0,                    // offsetColumn
@@ -46,37 +47,45 @@ coc-settings.json:
       "args": ["--stdio"],
       "filetypes": [ "vim", "email" ],
       "initializationOptions": {
-        "vim": {
-          "command": "vint",
-          "args": [ "--enable-neovim", "-"],
-          "offsetLine": 0,
-          "offsetColumn": 0,
-          "sourceName": "vint",
-          "formatLines": 1,
-          "formatPattern": [
-            "[^:]+:(\\d+):(\\d+):\\s*(.*$)",
-            {
-              "line": 1,
-              "column": 2,
-              "message": 3
-            }
-          ]
+        "linters": {
+          "vint": {
+            "command": "vint",
+            "debounce": 100,
+            "args": [ "--enable-neovim", "-"],
+            "offsetLine": 0,
+            "offsetColumn": 0,
+            "sourceName": "vint",
+            "formatLines": 1,
+            "formatPattern": [
+              "[^:]+:(\\d+):(\\d+):\\s*(.*$)",
+              {
+                "line": 1,
+                "column": 2,
+                "message": 3
+              }
+            ]
+          },
+          "languagetool": {
+            "command": "languagetool",
+            "debounce": 200,
+            "args": ["-"],
+            "offsetLine": 0,
+            "offsetColumn": 0,
+            "sourceName": "languagetool",
+            "formatLines": 2,
+            "formatPattern": [
+              "^\\d+?\\.\\)\\s+Line\\s+(\\d+),\\s+column\\s+(\\d+),\\s+([^\\n]+)\nMessage:\\s+(.*)$",
+              {
+                "line": 1,
+                "column": 2,
+                "message": [4, 3]
+              }
+            ],
+          }
         },
-        "email": {
-          "command": "languagetool",
-          "args": ["-"],
-          "offsetLine": 0,
-          "offsetColumn": 0,
-          "sourceName": "languagetool",
-          "formatLines": 2,
-          "formatPattern": [
-            "^\\d+?\\.\\)\\s+Line\\s+(\\d+),\\s+column\\s+(\\d+),\\s+([^\\n]+)\nMessage:\\s+(.*)$",
-            {
-              "line": 1,
-              "column": 2,
-              "message": [4, 3]
-            }
-          ],
+        "filetypes": {
+          "vim": "vint",
+          "email": "languagetool"
         }
       }
     }

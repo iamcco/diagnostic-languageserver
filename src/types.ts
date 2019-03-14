@@ -1,6 +1,7 @@
 // config of per language
-export interface IConfigItem {
+export interface ILinterConfig {
   command: string
+  debounce?: number
   args?: Array<string|number>
   sourceName: string
   formatLines?: number
@@ -15,5 +16,10 @@ export interface IConfigItem {
 
 // initializationOptions config
 export interface IConfig {
-  [fileType: string]: IConfigItem
+  linters: {
+    [linter: string]: ILinterConfig
+  }
+  filetypes: {
+    [fileType: string]: string
+  }
 }
