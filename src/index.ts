@@ -1,16 +1,28 @@
 import {
   createConnection,
   TextDocuments,
-  TextDocument,
-  Diagnostic,
-  DiagnosticSeverity,
+  InitializeParams,
+  IConnection,
 } from 'vscode-languageserver';
 
-let connection = createConnection();
+import { IConfig } from './types';
+import { handleDiagnostic } from './handle';
 
-let documents: TextDocuments = new TextDocuments();
+// create connection by command argv
+const connection: IConnection = createConnection();
 
-connection.onInitialize(() => {
+// sync text document manager
+const documents: TextDocuments = new TextDocuments();
+
+// config of initializationOptions
+let config: IConfig
+
+// lsp initialize
+connection.onInitialize((param: InitializeParams) => {
+  const { initializationOptions = {} } = param
+
+  config = initializationOptions
+
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
@@ -18,32 +30,24 @@ connection.onInitialize(() => {
   };
 });
 
-documents.onDidChangeContent(change => {
-  validateTextDocument(change.document);
+// document change or open
+documents.onDidChangeContent(async ( change ) => {
+  const textDocument = change.document
+  const configItem = config[textDocument.languageId]
+  if (configItem) {
+    try {
+      const diagnostics =  await handleDiagnostic(textDocument, configItem)
+      if (diagnostics) {
+        connection.sendDiagnostics(diagnostics);
+      }
+    } catch (error) {
+      connection.console.log(`Handle Diagnostic Error: ${error.message}`)
+    }
+  }
 });
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  let text = textDocument.getText();
-  let pattern = /\b[A-Z]{2,}\b/g;
-  let m: RegExpExecArray | null;
-
-  let diagnostics: Diagnostic[] = [];
-  while ((m = pattern.exec(text))) {
-    let diagnostic: Diagnostic = {
-      severity: DiagnosticSeverity.Warning,
-      range: {
-        start: textDocument.positionAt(m.index),
-        end: textDocument.positionAt(m.index + m[0].length)
-      },
-      message: `${m[0]} is all uppercase.`,
-      source: 'ex'
-    };
-    diagnostics.push(diagnostic);
-  }
-
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-
+// listen for document's open/close/change
 documents.listen(connection);
 
+// lsp start
 connection.listen();
