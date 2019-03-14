@@ -1,6 +1,6 @@
 {
   "name": "diagnostic-languageserver",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "diagnostic language server",
   "main": "./lib/index.js",
   "repository": "git@github.com:iamcco/diagnostic-languageserver.git",
@@ -11,7 +11,7 @@
     "watch": "tsc -w -p ./"
   },
   "bin": {
-    "diagnostic-languageserver": "./lib/index.js"
+    "diagnostic-languageserver": "./bin/index.js"
   },
   "dependencies": {
     "rxjs": "^6.4.0",
