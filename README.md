@@ -11,7 +11,7 @@ yarn global add diagnostic-languageserver
 ## Document
 
 ``` javascript
-initializationOptions: {
+"fileType": {
   "command": "vint",                    // linter command
   "args": [ "--enable-neovim", "-"],    // args
   "offsetLine": 0,                      // offsetline
@@ -31,12 +31,12 @@ initializationOptions: {
 
 ## Usage
 
-1. Setup with [coc.nvim](https://github.com/neoclide/coc.nvim):
-
-coc-settings.json:
-
 1. [vint](https://github.com/Kuniwak/vint) for vim
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
+
+Setup with [coc.nvim](https://github.com/neoclide/coc.nvim):
+
+coc-settings.json:
 
 ``` json
 {
