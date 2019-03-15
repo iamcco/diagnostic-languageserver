@@ -8,34 +8,129 @@
 yarn global add diagnostic-languageserver
 ```
 
-## Document
+## Config & Document
 
-``` javascript
-"linter": {
-  "command": "vint",                    // linter command
-  "debounce": 100,                      // debounce time
-  "args": [ "--enable-neovim", "-"],    // args
-  "offsetLine": 0,                      // offsetline
-  "offsetColumn": 0,                    // offsetColumn
-  "sourceName": "vint",                 // source name
-  "formatLines": 1,                     // how many lines for formatPattern[0] to match
-  "formatPattern": [
-    "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern
-    {
-      "line": 1,                        // diagnostic line use match group 1
-      "column": 2,                      // diagnostic column use match group 2
-      "message": [3]                    // message to display use match group 3
+languageserver config:
+``` json
+{
+    "languageserver": {
+        "dls": {
+          "command": "diagnostic-languageserver",
+          "args": ["--stdio"],
+          "filetypes": [ "vim", "email" ], // filetypes that you want to enable this lsp
+          "initializationOptions": {
+              "linters": {
+                ...
+              },
+              "filetypes": {
+                ...
+              }
+          }
+        }
     }
-  ]
 }
 ```
 
-## Usage
+`linters` field:
+
+```json
+{
+  "linterName": {                         // linter name, for example: vint
+    "command": "vint",                    // linter command
+    "debounce": 100,                      // debounce time
+    "args": [ "--enable-neovim", "-"],    // args
+    "offsetLine": 0,                      // offsetline
+    "offsetColumn": 0,                    // offsetColumn
+    "sourceName": "vint",                 // source name
+    "formatLines": 1,                     // how many lines for formatPattern[0] to match
+    "formatPattern": [
+      "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern (javascript regex)
+      {
+        "line": 1,                        // diagnostic line use match group 1
+        "column": 2,                      // diagnostic column use match group 2
+        "message": [3]                    // message to display use match group 3
+      }
+    ]
+  }
+}
+```
+
+`filetypes` field:
+
+```json
+{
+  "vim": "linterName",                          // filetype: linterName or linterName[]
+}
+```
+
+## How to config a new linter ?
+
+vint for example:
+
+test.vim:
+
+``` vim
+function a() abort
+endfunction
+```
+
+then:
+```bash
+vint test.vim
+```
+
+output:
+
+```text
+t.vim:1:10: E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)
+```
+
+write pattern to match the line for `line` `column` `message`:
+
+```javascript
+const line = "t.vim:1:10: E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)"
+const formatPattern = "[^:]+:(\\d+):(\\d+):\\s*(.*$)"
+const match = line.match(new RegExp(formatPattern))
+console.log(match)
+```
+
+output:
+
+```text
+{
+  0: "t.vim:1:10: E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)"
+  1: "1"
+  2: "10"
+  3: "E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)"
+}
+```
+
+so you got:
+
+- `line`: `match[1]`
+- `column`: `match[2]`
+- `message`: `match[3]`
+
+and your `formatPattern` field will be:
+
+```json
+"formatPattern": [
+  "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern (javascript regex)
+  {
+    "line": 1,                        // diagnostic line use match group 1
+    "column": 2,                      // diagnostic column use match group 2
+    "message": [3]                    // message to display use match group 3
+  }
+]
+```
+
+> **Notes**
+> if the linter message more then one line, you have to set the `formatLines` to fill your pattern
+
+## Example with [coc.nvim](https://github.com/neoclide/coc.nvim):
 
 1. [vint](https://github.com/Kuniwak/vint) for vim
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
-
-Setup with [coc.nvim](https://github.com/neoclide/coc.nvim):
 
 coc-settings.json:
 
@@ -96,3 +191,9 @@ coc-settings.json:
 ## References
 
 - inspired by [efm-langserver](https://github.com/mattn/efm-langserver)
+
+### Buy Me A Coffee ☕️
+
+![btc](https://img.shields.io/keybase/btc/iamcco.svg?style=popout-square)
+
+![image](https://user-images.githubusercontent.com/5492542/42771079-962216b0-8958-11e8-81c0-520363ce1059.png)
