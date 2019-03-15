@@ -20,6 +20,6 @@ export interface IConfig {
     [linter: string]: ILinterConfig
   }
   filetypes: {
-    [fileType: string]: string
+    [fileType: string]: string | string[]
   }
 }

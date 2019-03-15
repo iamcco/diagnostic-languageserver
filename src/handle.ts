@@ -3,11 +3,28 @@ import { TextDocument, PublishDiagnosticsParams, DiagnosticSeverity, Diagnostic 
 import { ILinterConfig } from './types';
 import { executeFile } from './util';
 import HunkStream from './hunkStream';
+import logger from './logger';
 
-export async function handleDiagnostic (
+export async function handleDiagnostics(
+  textDocument: TextDocument,
+  configs: ILinterConfig[]
+) {
+  let diagnostics: Diagnostic[] = []
+  for (const linter of configs) {
+    const dias = await handleLinter(textDocument, linter)
+    diagnostics = diagnostics.concat(dias)
+  }
+  return {
+    uri: textDocument.uri,
+    version: textDocument.version,
+    diagnostics
+  }
+}
+
+export async function handleLinter (
   textDocument: TextDocument,
   config: ILinterConfig
-): Promise<PublishDiagnosticsParams> {
+): Promise<Diagnostic[]> {
   const text = textDocument.getText();
   const {
     command,
@@ -18,11 +35,12 @@ export async function handleDiagnostic (
     offsetLine = 0,
     offsetColumn = 0
   } = config
+  let diagnostics: Diagnostic[] = [];
   // verify params
   if (!command || !sourceName || !formatLines || !formatPattern) {
-    throw new Error(`[${textDocument.languageId}] missing config`)
+    logger.error(`[${textDocument.languageId}] missing config`)
+    return diagnostics
   }
-  let diagnostics: Diagnostic[] = [];
   try {
     const { stdout = '' } = await executeFile(new HunkStream(text), command, args)
     const lines = stdout.split('\n')
@@ -59,11 +77,7 @@ export async function handleDiagnostic (
       str = lines.shift()
     }
   } catch (error) {
-    throw new Error(`[${textDocument.languageId}] diagnostic handle fail: ${error.message}`)
+    logger.error(`[${textDocument.languageId}] diagnostic handle fail: ${error.message}`)
   }
-  return {
-    uri: textDocument.uri,
-    version: textDocument.version,
-    diagnostics
-  }
+  return diagnostics
 }

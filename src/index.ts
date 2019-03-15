@@ -7,9 +7,13 @@ import {
 
 import { IConfig } from './types';
 import { next, unsubscribe } from './stream';
+import logger from './logger';
 
 // create connection by command argv
 const connection: IConnection = createConnection();
+
+// init logger
+logger.init(connection)
 
 // sync text document manager
 const documents: TextDocuments = new TextDocuments();
@@ -34,15 +38,15 @@ connection.onInitialize((param: InitializeParams) => {
 documents.onDidChangeContent(( change ) => {
   const textDocument = change.document
   const { linters = {}, filetypes = {} } = config
-  const linter = filetypes[textDocument.languageId]
-  if (!linter) {
+  const linter = [].concat(filetypes[textDocument.languageId])
+  if (linter.length === 0) {
     return
   }
-  const configItem = linters[linter]
-  if (!configItem) {
+  const configItems = linter.map(l => linters[l]).filter(l => l)
+  if (configItems.length === 0) {
     return
   }
-  next(textDocument, connection, configItem)
+  next(textDocument, connection, configItems)
 });
 
 documents.onDidClose((evt) => {
