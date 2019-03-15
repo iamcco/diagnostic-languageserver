@@ -5,6 +5,13 @@ import { executeFile } from './util';
 import HunkStream from './hunkStream';
 import logger from './logger';
 
+function sumNum(num: string | undefined, ...args: number[]) {
+  if (num === undefined) {
+    return 0
+  }
+  return args.reduce((res, next) => res + next, parseInt(num, 10))
+}
+
 export async function handleDiagnostics(
   textDocument: TextDocument,
   configs: ILinterConfig[]
@@ -16,7 +23,6 @@ export async function handleDiagnostics(
   }
   return {
     uri: textDocument.uri,
-    version: textDocument.version,
     diagnostics
   }
 }
@@ -33,7 +39,9 @@ export async function handleLinter (
     formatLines = 1,
     formatPattern,
     offsetLine = 0,
-    offsetColumn = 0
+    offsetColumn = 0,
+    isStdout,
+    isStderr
   } = config
   let diagnostics: Diagnostic[] = [];
   // verify params
@@ -42,8 +50,18 @@ export async function handleLinter (
     return diagnostics
   }
   try {
-    const { stdout = '' } = await executeFile(new HunkStream(text), command, args)
-    const lines = stdout.split('\n')
+    const { stdout = '', stderr = '' } = await executeFile(new HunkStream(text), command, args)
+    let lines = []
+    if (isStdout == undefined && isStderr === undefined) {
+      lines = stdout.split('\n')
+    } else {
+      if (isStdout) {
+        lines = lines.concat(stdout.split('\n'))
+      }
+      if (isStderr) {
+        lines = lines.concat(stderr.split('\n'))
+      }
+    }
     let str = lines.shift()
     while(lines.length > 0) {
       str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
@@ -54,12 +72,12 @@ export async function handleLinter (
           range: {
             start: {
               // line and character is base zero so need -1
-              line: parseInt(m[formatPattern[1].line], 10) - 1 + offsetLine,
-              character: parseInt(m[formatPattern[1].column], 10) - 1 + offsetColumn
+              line: sumNum(m[formatPattern[1].line], -1, offsetLine),
+              character: sumNum(m[formatPattern[1].column], -1, offsetColumn)
             },
             end: {
-              line: parseInt(m[formatPattern[1].line], 10) - 1 + offsetLine,
-              character: parseInt(m[formatPattern[1].column], 10) + offsetColumn
+              line: sumNum(m[formatPattern[1].line], -1, offsetLine),
+              character: sumNum(m[formatPattern[1].column], offsetColumn)
             }
           },
           message: [].concat(formatPattern[1].message).reduce((res, next) => {

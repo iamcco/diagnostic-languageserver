@@ -1,6 +1,7 @@
 # diagnostic-languageserver
 
-> General purpose Language Server that integrate with linter to support diagnostic features
+> General purpose Language Server that integrate with
+> linter to support diagnostic features
 
 ![image](https://user-images.githubusercontent.com/5492542/54408361-a1c1cd80-471c-11e9-8498-d7d928a40e28.png)
 
@@ -13,23 +14,24 @@ yarn global add diagnostic-languageserver
 ## Config & Document
 
 languageserver config:
+
 ``` jsonc
 {
-    "languageserver": {
-        "dls": {
-          "command": "diagnostic-languageserver",
-          "args": ["--stdio"],
-          "filetypes": [ "vim", "email" ], // filetypes that you want to enable this lsp
-          "initializationOptions": {
-              "linters": {
-                ...
-              },
-              "filetypes": {
-                ...
-              }
-          }
+  "languageserver": {
+    "dls": {
+      "command": "diagnostic-languageserver",
+      "args": ["--stdio"],
+      "filetypes": [ "vim", "email" ], // filetypes that you want to enable this lsp
+      "initializationOptions": {
+        "linters": {
+          ...
+        },
+        "filetypes": {
+          ...
         }
+      }
     }
+  }
 }
 ```
 
@@ -65,7 +67,7 @@ languageserver config:
 }
 ```
 
-## How to config a new linter ?
+## How to config a new linter
 
 vint for example:
 
@@ -77,6 +79,7 @@ endfunction
 ```
 
 then:
+
 ```bash
 vint test.vim
 ```
@@ -130,7 +133,7 @@ and your `formatPattern` field will be:
 > if the linter's message for per issue more then one line, you have to set the `formatLines` to fill your pattern,
 > and you can view the languagetool pattern for example which `formatLines = 2`
 
-## Example with [coc.nvim](https://github.com/neoclide/coc.nvim):
+## Example with [coc.nvim](https://github.com/neoclide/coc.nvim)
 
 1. [vint](https://github.com/Kuniwak/vint) for vim
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check

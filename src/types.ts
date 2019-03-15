@@ -1,6 +1,8 @@
 // config of per language
 export interface ILinterConfig {
   command: string
+  isStdout?: boolean
+  isStderr?: boolean
   debounce?: number
   args?: Array<string|number>
   sourceName: string
