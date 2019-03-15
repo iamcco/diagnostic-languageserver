@@ -13,7 +13,7 @@ yarn global add diagnostic-languageserver
 ## Config & Document
 
 languageserver config:
-``` json
+``` jsonc
 {
     "languageserver": {
         "dls": {
@@ -35,7 +35,7 @@ languageserver config:
 
 `linters` field:
 
-```json
+```jsonc
 {
   "linterName": {                         // linter name, for example: vint
     "command": "vint",                    // linter command
@@ -59,7 +59,7 @@ languageserver config:
 
 `filetypes` field:
 
-```json
+```jsonc
 {
   "vim": "linterName",                          // filetype: linterName or linterName[]
 }
@@ -115,7 +115,7 @@ so you got:
 
 and your `formatPattern` field will be:
 
-```json
+```jsonc
 "formatPattern": [
   "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern (javascript regex)
   {
@@ -136,7 +136,7 @@ and your `formatPattern` field will be:
 
 coc-settings.json:
 
-``` json
+``` jsonc
 {
   "languageserver": {
     "dls": {
