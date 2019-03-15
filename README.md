@@ -2,6 +2,8 @@
 
 > General purpose Language Server that integrate with linter to support diagnostic features
 
+![image](https://user-images.githubusercontent.com/5492542/54408361-a1c1cd80-471c-11e9-8498-d7d928a40e28.png)
+
 ## Install
 
 ``` bash
