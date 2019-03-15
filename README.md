@@ -127,7 +127,8 @@ and your `formatPattern` field will be:
 ```
 
 > **Notes**
-> if the linter message more then one line, you have to set the `formatLines` to fill your pattern
+> if the linter's message for per issue more then one line, you have to set the `formatLines` to fill your pattern,
+> and you can view the languagetool pattern for example which `formatLines = 2`
 
 ## Example with [coc.nvim](https://github.com/neoclide/coc.nvim):
 
