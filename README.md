@@ -44,7 +44,7 @@ languageserver config:
     "offsetLine": 0,                      // offsetline
     "offsetColumn": 0,                    // offsetColumn
     "sourceName": "vint",                 // source name
-    "formatLines": 1,                     // how many lines for formatPattern[0] to match
+    "formatLines": 1,                     // how much lines for formatPattern[0] to match
     "formatPattern": [
       "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern (javascript regex)
       {
@@ -134,6 +134,7 @@ and your `formatPattern` field will be:
 
 1. [vint](https://github.com/Kuniwak/vint) for vim
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
+3. see all [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) list config example.
 
 coc-settings.json:
 
