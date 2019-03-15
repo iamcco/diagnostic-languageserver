@@ -14,6 +14,15 @@ export function executeFile(
   return new Promise((resolve) => {
     let stdout = ''
     let stderr = ''
+    let isPassAsText = false
+
+    args = (args || []).map(arg => {
+      if (/%text/.test(arg)) {
+        isPassAsText = true
+        return arg.replace(/%text/g, input.toString())
+      }
+      return arg
+    })
 
     const cp = spawn(command,  args, option);
 
@@ -29,6 +38,8 @@ export function executeFile(
       resolve({ code, stdout, stderr })
     });
 
-    input.pipe(cp.stdin)
+    if (!isPassAsText) {
+      input.pipe(cp.stdin)
+    }
   })
 }

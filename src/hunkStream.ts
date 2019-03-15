@@ -11,4 +11,8 @@ export default class HunkStream extends Readable {
     ctx.push(this.content)
     ctx.push(null)
   }
+
+  toString() {
+    return this.content
+  }
 }

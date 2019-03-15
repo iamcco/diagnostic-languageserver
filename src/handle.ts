@@ -54,12 +54,12 @@ export async function handleLinter (
           range: {
             start: {
               // line and character is base zero so need -1
-              line: parseInt(m[formatPattern[1].line], 10) - 1 - offsetLine,
-              character: parseInt(m[formatPattern[1].column], 10) - 1 - offsetColumn
+              line: parseInt(m[formatPattern[1].line], 10) - 1 + offsetLine,
+              character: parseInt(m[formatPattern[1].column], 10) - 1 + offsetColumn
             },
             end: {
-              line: parseInt(m[formatPattern[1].line], 10) - 1 - offsetLine,
-              character: parseInt(m[formatPattern[1].column], 10) - offsetColumn
+              line: parseInt(m[formatPattern[1].line], 10) - 1 + offsetLine,
+              character: parseInt(m[formatPattern[1].column], 10) + offsetColumn
             }
           },
           message: [].concat(formatPattern[1].message).reduce((res, next) => {

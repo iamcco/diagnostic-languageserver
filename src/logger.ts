@@ -3,8 +3,8 @@ import { IConnection } from 'vscode-languageserver';
 let connection: IConnection
 
 export default {
-  init: (connection: IConnection) => {
-    connection = connection
+  init: (con: IConnection) => {
+    connection = con
   },
   log: (message: string) => {
     if (connection) {
