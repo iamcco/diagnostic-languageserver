@@ -195,6 +195,12 @@ coc-settings.json:
 }
 ```
 
+## TODO
+
+- [ ] local node_modules linter support link eslint or textlint
+- [ ] diagnostic severity
+- [ ] root pattern
+
 ## References
 
 - inspired by [efm-langserver](https://github.com/mattn/efm-langserver)

@@ -1,4 +1,8 @@
-import { TextDocument, DiagnosticSeverity, Diagnostic } from 'vscode-languageserver';
+import {
+  TextDocument,
+  DiagnosticSeverity,
+  Diagnostic,
+} from 'vscode-languageserver';
 
 import { ILinterConfig } from './types';
 import { executeFile } from './util';
@@ -10,6 +14,20 @@ function sumNum(num: string | undefined, ...args: number[]) {
     return 0
   }
   return args.reduce((res, next) => res + next, parseInt(num, 10))
+}
+
+function formatMessage(
+  message: number | Array<number|string>,
+  match: RegExpMatchArray
+) {
+  return [].concat(message).reduce((res, next) => {
+    if (typeof next === 'number') {
+      res += match[next]
+    } else {
+      res += next
+    }
+    return res
+  }, '')
 }
 
 export async function handleDiagnostics(
@@ -50,7 +68,10 @@ export async function handleLinter (
     return diagnostics
   }
   try {
-    const { stdout = '', stderr = '' } = await executeFile(new HunkStream(text), command, args)
+    const {
+      stdout = '',
+      stderr = ''
+    } = await executeFile(new HunkStream(text), command, args)
     let lines = []
     if (isStdout == undefined && isStderr === undefined) {
       lines = stdout.split('\n')
@@ -62,8 +83,8 @@ export async function handleLinter (
         lines = lines.concat(stderr.split('\n'))
       }
     }
-    let str = lines.shift()
-    while(lines.length > 0) {
+    let str: string = lines.shift()
+    while(lines.length > 0 || str !== undefined) {
       str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
       const m = str.match(new RegExp(formatPattern[0]))
       if (m) {
@@ -80,14 +101,7 @@ export async function handleLinter (
               character: sumNum(m[formatPattern[1].column], offsetColumn)
             }
           },
-          message: [].concat(formatPattern[1].message).reduce((res, next) => {
-            if (typeof next === 'number') {
-              res += m[next]
-            } else {
-              res += next
-            }
-            return res
-          }, ''),
+          message: formatMessage(formatPattern[1].message, m),
           source: sourceName
         };
         diagnostics.push(diagnostic);
