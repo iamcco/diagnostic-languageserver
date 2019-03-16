@@ -1,4 +1,4 @@
-import { TextDocument, PublishDiagnosticsParams, DiagnosticSeverity, Diagnostic } from 'vscode-languageserver';
+import { TextDocument, DiagnosticSeverity, Diagnostic } from 'vscode-languageserver';
 
 import { ILinterConfig } from './types';
 import { executeFile } from './util';

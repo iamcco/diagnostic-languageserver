@@ -11,9 +11,10 @@ export function executeFile(
   stdout: string,
   stderr: string
 }> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let stdout = ''
     let stderr = ''
+    let error: Error
     let isPassAsText = false
 
     args = (args || []).map(arg => {
@@ -34,12 +35,21 @@ export function executeFile(
       stderr += data
     });
 
+    cp.on('error', (err: Error) => {
+      error = err
+      reject(error)
+    })
+
     cp.on('close', (code) => {
-      resolve({ code, stdout, stderr })
+      if (!error) {
+        resolve({ code, stdout, stderr })
+      }
     });
 
+    // error will occur when cp get error
     if (!isPassAsText) {
-      input.pipe(cp.stdin)
+      input.pipe(cp.stdin).on('error', () => {})
     }
+
   })
 }
