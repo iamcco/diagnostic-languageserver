@@ -1,6 +1,6 @@
 {
   "name": "diagnostic-languageserver",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "diagnostic language server",
   "main": "./lib/index.js",
   "repository": "git@github.com:iamcco/diagnostic-languageserver.git",
@@ -14,9 +14,11 @@
     "diagnostic-languageserver": "./bin/index.js"
   },
   "dependencies": {
+    "findup": "^0.1.5",
     "rxjs": "^6.4.0",
     "tslib": "^1.9.3",
-    "vscode-languageserver": "^5.3.0-next.1"
+    "vscode-languageserver": "^5.3.0-next.1",
+    "vscode-uri": "^1.0.6"
   },
   "devDependencies": {
     "@types/node": "^11.11.3",

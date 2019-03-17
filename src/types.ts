@@ -7,6 +7,7 @@ export interface ISecurities {
 // config of per language
 export interface ILinterConfig {
   command: string
+  rootPatterns: string[] | string
   isStdout?: boolean
   isStderr?: boolean
   debounce?: number

@@ -41,6 +41,9 @@ languageserver config:
 {
   "linterName": {                                    // linter name, for example: vint
     "command": "shellcheck",                         // linter command
+    "rootPatterns": [],                              // root patterns, default empty array
+    "isStdout": true,                                // use stdout output, default true
+    "isStderr": false,                               // use stderr output, default false
     "debounce": 100,                                 // debounce time
     "args": [ "--format=gcc", "-"],                  // args
     "offsetLine": 0,                                 // offsetline
@@ -215,9 +218,9 @@ coc-settings.json:
 
 ## TODO
 
-- [ ] local node_modules linter support link eslint or textlint
+- [x] local node_modules linter support link eslint or textlint
 - [x] diagnostic severity
-- [ ] root pattern
+- [x] root pattern
 
 ## References
 

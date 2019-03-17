@@ -3,9 +3,13 @@ import {
   DiagnosticSeverity,
   Diagnostic,
 } from 'vscode-languageserver';
+import VscUri from 'vscode-uri';
+import findup from 'findup';
+import path from 'path';
+import fs from 'fs';
 
 import { ILinterConfig, SecurityKey } from './types';
-import { executeFile } from './util';
+import { executeFile, pcb } from './util';
 import HunkStream from './hunkStream';
 import logger from './logger';
 
@@ -45,6 +49,33 @@ function getSecurity(
   return security !== undefined ? security : 1
 }
 
+// find work dirname by root patterns
+async function findWorkDirectory(
+  filePath: string,
+  rootPatterns: string | string[]
+): Promise<string> {
+  const dirname = path.dirname(filePath)
+  let patterns = [].concat(rootPatterns)
+  for (const pattern of patterns) {
+    const [err, dir] =  await pcb(findup)(dirname, pattern)
+    if (!err && dir && dir !== '/') {
+      return dir
+    }
+  }
+  return dirname
+}
+
+async function findCommand(command: string, workDir: string) {
+  if (/^(\.\.|\.)/.test(command)) {
+    let cmd = path.join(workDir, command)
+    if (fs.existsSync(cmd)) {
+      return command
+    }
+    return path.basename(cmd)
+  }
+  return command
+}
+
 export async function handleDiagnostics(
   textDocument: TextDocument,
   configs: ILinterConfig[]
@@ -67,6 +98,7 @@ export async function handleLinter (
   const text = textDocument.getText();
   const {
     command,
+    rootPatterns = [],
     args = [],
     sourceName,
     formatLines = 1,
@@ -84,10 +116,22 @@ export async function handleLinter (
     return diagnostics
   }
   try {
+    const workDir = await findWorkDirectory(
+      VscUri.parse(textDocument.uri).path,
+      rootPatterns
+    )
+    const cmd = await findCommand(command, workDir)
     const {
       stdout = '',
       stderr = ''
-    } = await executeFile(new HunkStream(text), command, args)
+    } = await executeFile(
+      new HunkStream(text),
+      cmd,
+      args,
+      {
+        cwd: workDir
+      }
+    )
     let lines = []
     if (isStdout == undefined && isStderr === undefined) {
       lines = stdout.split('\n')

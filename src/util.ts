@@ -53,3 +53,16 @@ export function executeFile(
 
   })
 }
+
+// cover cb type async function to promise
+export function pcb(
+  cb: (...args: any[]) => void,
+): (...args: any[]) => Promise<any> {
+  return function(...args: any[]): Promise<any> {
+    return new Promise((resolve) => {
+      cb(...args, function(...args: any[]) {
+        resolve(args)
+      })
+    })
+  }
+}
