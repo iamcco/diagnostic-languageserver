@@ -44,7 +44,6 @@ function formatMessage(
 function getSecurity(
   securityKey: SecurityKey
 ) {
-  logger.log(securityKey)
   const security = securityMap[securityKey]
   return security !== undefined ? security : 1
 }
