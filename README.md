@@ -3,7 +3,7 @@
 > General purpose Language Server that integrate with
 > linter to support diagnostic features
 
-![image](https://user-images.githubusercontent.com/5492542/54408361-a1c1cd80-471c-11e9-8498-d7d928a40e28.png)
+![image](https://user-images.githubusercontent.com/5492542/54487533-15590b80-48d2-11e9-8cba-7e58c0edcf6f.png)
 
 ## Install
 
@@ -21,7 +21,7 @@ languageserver config:
     "dls": {
       "command": "diagnostic-languageserver",
       "args": ["--stdio"],
-      "filetypes": [ "vim", "email" ], // filetypes that you want to enable this lsp
+      "filetypes": [ "vim", "email", "sh" ], // filetypes that you want to enable this lsp
       "initializationOptions": {
         "linters": {
           ...
@@ -39,22 +39,28 @@ languageserver config:
 
 ```jsonc
 {
-  "linterName": {                         // linter name, for example: vint
-    "command": "vint",                    // linter command
-    "debounce": 100,                      // debounce time
-    "args": [ "--enable-neovim", "-"],    // args
-    "offsetLine": 0,                      // offsetline
-    "offsetColumn": 0,                    // offsetColumn
-    "sourceName": "vint",                 // source name
-    "formatLines": 1,                     // how much lines for formatPattern[0] to match
+  "linterName": {                                    // linter name, for example: vint
+    "command": "shellcheck",                         // linter command
+    "debounce": 100,                                 // debounce time
+    "args": [ "--format=gcc", "-"],                  // args
+    "offsetLine": 0,                                 // offsetline
+    "offsetColumn": 0,                               // offsetColumn
+    "sourceName": "shellcheck",                      // source name
+    "formatLines": 1,                                // how much lines for formatPattern[0] to match
     "formatPattern": [
-      "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern (javascript regex)
+      "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",  // line match pattern (javascript regex)
       {
-        "line": 1,                        // diagnostic line use match group 1
-        "column": 2,                      // diagnostic column use match group 2
-        "message": [3]                    // message to display use match group 3
+        "line": 1,                                   // diagnostic line use match group 1
+        "column": 2,                                 // diagnostic column use match group 2
+        "message": [4],                              // message to display use match group 4
+        "security": 3                                // security to use match group 3, ignore if linter do not support security
       }
-    ]
+    ],
+    "securities": {                                  // security keys, ignore if linter do not support security
+      "error": "error",                              // [key: string]?: "error" | "warning" | "info" | "hint"
+      "warning": "warning",
+      "note": "info"
+    }
   }
 }
 ```
@@ -63,50 +69,54 @@ languageserver config:
 
 ```jsonc
 {
-  "vim": "linterName",                          // filetype: linterName or linterName[]
+  "sh": "linterName",                          // filetype: linterName or linterName[]
 }
 ```
 
 ## How to config a new linter
 
-vint for example:
+[shellcheck](https://github.com/koalaman/shellcheck) for example:
 
-test.vim:
+file `test.sh`:
 
-``` vim
-function a() abort
-endfunction
+``` sh
+#!/usr/bin/env bash
+
+echo `ls -al`
 ```
 
 then:
 
 ```bash
-vint test.vim
+shellcheck --format=gcc test.sh
 ```
 
 output:
 
 ```text
-t.vim:1:10: E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)
+t.sh:3:6: warning: Quote this to prevent word splitting. [SC2046]
+t.sh:3:6: note: Useless echo? Instead of 'echo $(cmd)', just use 'cmd'. [SC2005]
+t.sh:3:6: note: Use $(...) notation instead of legacy backticked `...`. [SC2006]
 ```
 
-write pattern to match the line for `line` `column` `message`:
+write pattern to match the line for `line` `column` `message` `security`:
 
 ```javascript
-const line = "t.vim:1:10: E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)"
-const formatPattern = "[^:]+:(\\d+):(\\d+):\\s*(.*$)"
+const line = "t.sh:3:6: warning: Quote this to prevent word splitting. [SC2046]"
+const formatPattern = "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$"
 const match = line.match(new RegExp(formatPattern))
 console.log(match)
 ```
 
 output:
 
-```text
+``` jsonc
 {
-  0: "t.vim:1:10: E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)"
-  1: "1"
-  2: "10"
-  3: "E128: Function name must start with a capital or contain a colon: a (see vim-jp/vim-vimlparser)"
+  0: "t.sh:3:6: warning: Quote this to prevent word splitting. [SC2046]"
+  1: "3"
+  2: "6"
+  3: "warning"
+  4: "Quote this to prevent word splitting. [SC2046]"
 }
 ```
 
@@ -114,17 +124,19 @@ so you got:
 
 - `line`: `match[1]`
 - `column`: `match[2]`
-- `message`: `match[3]`
+- `message`: `match[4]`
+- `security`: `match[3]`
 
 and your `formatPattern` field will be:
 
 ```jsonc
 "formatPattern": [
-  "[^:]+:(\\d+):(\\d+):\\s*(.*$)",    // line match pattern (javascript regex)
+  "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",    // line match pattern (javascript regex)
   {
-    "line": 1,                        // diagnostic line use match group 1
-    "column": 2,                      // diagnostic column use match group 2
-    "message": [3]                    // message to display use match group 3
+    "line": 1,                                     // diagnostic line use match group 1
+    "column": 2,                                   // diagnostic column use match group 2
+    "message": [4],                                // message to display use match group 4
+    "security": 3                                  // security to use match group 3, ignore if linter do not support security
   }
 ]
 ```
@@ -135,9 +147,9 @@ and your `formatPattern` field will be:
 
 ## Example with [coc.nvim](https://github.com/neoclide/coc.nvim)
 
-1. [vint](https://github.com/Kuniwak/vint) for vim
+1. [shellcheck](https://github.com/koalaman/shellcheck) for shell
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
-3. see all [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) list config example.
+3. see more [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) config example.
 
 coc-settings.json:
 
@@ -150,22 +162,28 @@ coc-settings.json:
       "filetypes": [ "vim", "email" ],
       "initializationOptions": {
         "linters": {
-          "vint": {
-            "command": "vint",
+          "shellcheck": {
+            "command": "shellcheck",
             "debounce": 100,
-            "args": [ "--enable-neovim", "-"],
+            "args": [ "--format=gcc", "-"],
             "offsetLine": 0,
             "offsetColumn": 0,
-            "sourceName": "vint",
+            "sourceName": "shellcheck",
             "formatLines": 1,
             "formatPattern": [
-              "[^:]+:(\\d+):(\\d+):\\s*(.*$)",
+              "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",
               {
                 "line": 1,
                 "column": 2,
-                "message": 3
+                "message": 4,
+                "security": 3
               }
-            ]
+            ],
+            "securities": {
+              "error": "error",
+              "warning": "warning",
+              "note": "info"
+            }
           },
           "languagetool": {
             "command": "languagetool",
@@ -198,7 +216,7 @@ coc-settings.json:
 ## TODO
 
 - [ ] local node_modules linter support link eslint or textlint
-- [ ] diagnostic severity
+- [x] diagnostic severity
 - [ ] root pattern
 
 ## References

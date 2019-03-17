@@ -4,10 +4,17 @@ import {
   Diagnostic,
 } from 'vscode-languageserver';
 
-import { ILinterConfig } from './types';
+import { ILinterConfig, SecurityKey } from './types';
 import { executeFile } from './util';
 import HunkStream from './hunkStream';
 import logger from './logger';
+
+const securityMap = {
+  'error': DiagnosticSeverity.Error,
+  'warning': DiagnosticSeverity.Warning,
+  'info': DiagnosticSeverity.Information,
+  'hint': DiagnosticSeverity.Hint
+}
 
 function sumNum(num: string | undefined, ...args: number[]) {
   if (num === undefined) {
@@ -28,6 +35,14 @@ function formatMessage(
     }
     return res
   }, '')
+}
+
+function getSecurity(
+  securityKey: SecurityKey
+) {
+  logger.log(securityKey)
+  const security = securityMap[securityKey]
+  return security !== undefined ? security : 1
 }
 
 export async function handleDiagnostics(
@@ -59,7 +74,8 @@ export async function handleLinter (
     offsetLine = 0,
     offsetColumn = 0,
     isStdout,
-    isStderr
+    isStderr,
+    securities = {}
   } = config
   let diagnostics: Diagnostic[] = [];
   // verify params
@@ -88,20 +104,21 @@ export async function handleLinter (
       str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
       const m = str.match(new RegExp(formatPattern[0]))
       if (m) {
+        const { line, column, message, security } = formatPattern[1]
         let diagnostic: Diagnostic = {
-          severity: DiagnosticSeverity.Error,
+          severity: getSecurity(securities[m[security]]),
           range: {
             start: {
               // line and character is base zero so need -1
-              line: sumNum(m[formatPattern[1].line], -1, offsetLine),
-              character: sumNum(m[formatPattern[1].column], -1, offsetColumn)
+              line: sumNum(m[line], -1, offsetLine),
+              character: sumNum(m[column], -1, offsetColumn)
             },
             end: {
-              line: sumNum(m[formatPattern[1].line], -1, offsetLine),
-              character: sumNum(m[formatPattern[1].column], offsetColumn)
+              line: sumNum(m[line], -1, offsetLine),
+              character: sumNum(m[column], offsetColumn)
             }
           },
-          message: formatMessage(formatPattern[1].message, m),
+          message: formatMessage(message, m),
           source: sourceName
         };
         diagnostics.push(diagnostic);

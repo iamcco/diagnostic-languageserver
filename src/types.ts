@@ -1,3 +1,9 @@
+export type SecurityKey = 'error' | 'warning' | 'info' | 'hint'
+
+export interface ISecurities {
+  [key: string]: SecurityKey
+}
+
 // config of per language
 export interface ILinterConfig {
   command: string
@@ -10,8 +16,10 @@ export interface ILinterConfig {
   formatPattern: [string, {
     line: number,
     column: number,
-    message: Array<number|string> | number
+    message: Array<number|string> | number,
+    security: number
   }]
+  securities?: ISecurities
   offsetLine?: number
   offsetColumn?: number
 }
