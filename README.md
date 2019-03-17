@@ -21,7 +21,7 @@ languageserver config:
     "dls": {
       "command": "diagnostic-languageserver",
       "args": ["--stdio"],
-      "filetypes": [ "vim", "email", "sh" ], // filetypes that you want to enable this lsp
+      "filetypes": [ "sh", "email" ], // filetypes that you want to enable this lsp
       "initializationOptions": {
         "linters": {
           ...
@@ -152,7 +152,7 @@ and your `formatPattern` field will be:
 
 1. [shellcheck](https://github.com/koalaman/shellcheck) for shell
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
-3. see more [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) config example.
+3. more [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) config example.
 
 coc-settings.json:
 
@@ -162,7 +162,7 @@ coc-settings.json:
     "dls": {
       "command": "diagnostic-languageserver",
       "args": ["--stdio"],
-      "filetypes": [ "vim", "email" ],
+      "filetypes": [ "sh", "email" ],
       "initializationOptions": {
         "linters": {
           "shellcheck": {
@@ -207,7 +207,7 @@ coc-settings.json:
           }
         },
         "filetypes": {
-          "vim": "vint",
+          "sh": "shellcheck",
           "email": "languagetool"
         }
       }
@@ -218,7 +218,7 @@ coc-settings.json:
 
 ## TODO
 
-- [x] local node_modules linter support link eslint or textlint
+- [x] local node_modules linter support like eslint or textlint
 - [x] diagnostic severity
 - [x] root pattern
 
