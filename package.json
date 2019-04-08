@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p ./",
-    "watch": "tsc -w -p ./"
+    "watch": "tsc -w -p ./",
+    "postinstall": "yarn build"
   },
   "bin": {
     "diagnostic-languageserver": "./bin/index.js"
