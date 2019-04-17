@@ -2,16 +2,20 @@ import {
   TextDocument,
   DiagnosticSeverity,
   Diagnostic,
+  IConnection,
 } from 'vscode-languageserver';
 import VscUri from 'vscode-uri';
 import findup from 'findup';
 import path from 'path';
 import fs from 'fs';
+import { Subscription, Subject, from, timer } from 'rxjs';
+import { filter, switchMap, map } from 'rxjs/operators';
 
-import { ILinterConfig, SecurityKey } from './types';
-import { executeFile, pcb } from './util';
-import HunkStream from './hunkStream';
-import logger from './logger';
+import { waitMap } from '../common/observable';
+import { ILinterConfig, SecurityKey } from '../common/types';
+import { executeFile, pcb, findWorkDirectory, findCommand } from '../common/util';
+import HunkStream from '../common/hunkStream';
+import logger from '../common/logger';
 
 const securityMap = {
   'error': DiagnosticSeverity.Error,
@@ -19,6 +23,12 @@ const securityMap = {
   'info': DiagnosticSeverity.Information,
   'hint': DiagnosticSeverity.Hint
 }
+
+const origin$: Subject<TextDocument> = new Subject<TextDocument>()
+
+const subscriptions: {
+  [uri: string]: Subscription
+} = {}
 
 function sumNum(num: string | undefined, ...args: number[]) {
   if (num === undefined) {
@@ -48,49 +58,7 @@ function getSecurity(
   return security !== undefined ? security : 1
 }
 
-// find work dirname by root patterns
-async function findWorkDirectory(
-  filePath: string,
-  rootPatterns: string | string[]
-): Promise<string> {
-  const dirname = path.dirname(filePath)
-  let patterns = [].concat(rootPatterns)
-  for (const pattern of patterns) {
-    const [err, dir] =  await pcb(findup)(dirname, pattern)
-    if (!err && dir && dir !== '/') {
-      return dir
-    }
-  }
-  return dirname
-}
-
-async function findCommand(command: string, workDir: string) {
-  if (/^(\.\.|\.)/.test(command)) {
-    let cmd = path.join(workDir, command)
-    if (fs.existsSync(cmd)) {
-      return command
-    }
-    return path.basename(cmd)
-  }
-  return command
-}
-
-export async function handleDiagnostics(
-  textDocument: TextDocument,
-  configs: ILinterConfig[]
-) {
-  let diagnostics: Diagnostic[] = []
-  for (const linter of configs) {
-    const dias = await handleLinter(textDocument, linter)
-    diagnostics = diagnostics.concat(dias)
-  }
-  return {
-    uri: textDocument.uri,
-    diagnostics
-  }
-}
-
-export async function handleLinter (
+async function handleLinter (
   textDocument: TextDocument,
   config: ILinterConfig
 ): Promise<Diagnostic[]> {
@@ -172,4 +140,58 @@ export async function handleLinter (
     logger.error(`[${textDocument.languageId}] diagnostic handle fail: ${error.message}`)
   }
   return diagnostics
+}
+
+async function handleDiagnostics(
+  textDocument: TextDocument,
+  configs: ILinterConfig[]
+) {
+  let diagnostics: Diagnostic[] = []
+  for (const linter of configs) {
+    const dias = await handleLinter(textDocument, linter)
+    diagnostics = diagnostics.concat(dias)
+  }
+  return {
+    uri: textDocument.uri,
+    diagnostics
+  }
+}
+
+export function next(
+  textDocument: TextDocument,
+  connection: IConnection,
+  configs: ILinterConfig[]
+) {
+  const { uri } = textDocument
+  if (!subscriptions[uri]) {
+    const debounce = Math.max(...configs.map(i => i.debounce), 100)
+    subscriptions[uri] = origin$.pipe(
+      filter(textDocument => textDocument.uri === uri),
+      switchMap((textDocument: TextDocument) => {
+        return timer(debounce).pipe(
+          map(() => textDocument)
+        )
+      }),
+      waitMap((textDocument: TextDocument) => {
+        return from(handleDiagnostics(textDocument, configs))
+      }),
+    ).subscribe(
+      (diagnostics) => {
+        connection.sendDiagnostics(diagnostics);
+      },
+      (error: Error) => {
+        logger.error(`[${textDocument.languageId}]: observable error: ${error.message}`)
+      }
+    )
+  }
+  origin$.next(textDocument)
+}
+
+export function unsubscribe(textDocument: TextDocument) {
+  const { uri } = textDocument
+  const subp = subscriptions[uri]
+  if (subp && !subp.closed) {
+    subp.unsubscribe()
+  }
+  subscriptions[uri] = undefined
 }

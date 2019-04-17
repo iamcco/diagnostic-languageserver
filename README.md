@@ -28,6 +28,12 @@ languageserver config:
         },
         "filetypes": {
           ...
+        },
+        "formatters": {
+          ...
+        },
+        "formatFiletypes": {
+          ...
         }
       }
     }
@@ -73,6 +79,26 @@ languageserver config:
 ```jsonc
 {
   "sh": "linterName",                          // filetype: linterName or linterName[]
+}
+```
+
+`formatters` field:
+
+```jsonc
+  "dartfmt": {                                 // formatter name
+    "command": "dartfmt",                      // format command
+    "args": [ "--fix" ],                       // args
+    "rootPatterns": [],                        // root patterns, default empty array
+    "isStdout": true,                          // use stdout output, default true
+    "isStderr": false,                         // use stderr output, default false
+  }
+```
+
+`formatFiletypes` field:
+
+```jsonc
+{
+  "dart": "dartfmt",                          // filetype: formatterName or formatterName[]
 }
 ```
 
@@ -162,7 +188,7 @@ coc-settings.json:
     "dls": {
       "command": "diagnostic-languageserver",
       "args": ["--stdio"],
-      "filetypes": [ "sh", "email" ],
+      "filetypes": [ "sh", "email", "dart" ],
       "initializationOptions": {
         "linters": {
           "shellcheck": {
@@ -206,9 +232,18 @@ coc-settings.json:
             ],
           }
         },
+        "formatters": {
+          "dartfmt": {
+            "command": "dartfmt",
+            "args": [ "--fix" ],
+          }
+        },
         "filetypes": {
           "sh": "shellcheck",
           "email": "languagetool"
+        },
+        "formatFiletypes": {
+          "dart": "dartfmt"
         }
       }
     }
@@ -221,6 +256,7 @@ coc-settings.json:
 - [x] local node_modules linter support like eslint or textlint
 - [x] diagnostic severity
 - [x] root pattern
+- [x] document format
 
 ## References
 
