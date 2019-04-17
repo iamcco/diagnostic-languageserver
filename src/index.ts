@@ -45,10 +45,10 @@ connection.onInitialize((param: InitializeParams) => {
 documents.onDidChangeContent(( change ) => {
   const textDocument = change.document
   const { linters = {}, filetypes = {} } = config
-  const linter = [].concat(filetypes[textDocument.languageId])
-  if (linter.length === 0) {
+  if (!filetypes[textDocument.languageId]) {
     return
   }
+  const linter = [].concat(filetypes[textDocument.languageId])
   const configItems = linter.map(l => linters[l]).filter(l => l)
   if (configItems.length === 0) {
     return
@@ -70,15 +70,21 @@ connection.onDocumentFormatting(async (
 ) => {
   const { textDocument } = params
   if (!textDocument || !textDocument.uri) {
-    return null
+    return
   }
   const doc = documents.get(textDocument.uri)
   if (!doc) {
     return
   }
   const { formatters, formatFiletypes } = config
+  if (!formatFiletypes[doc.languageId]) {
+    return
+  }
   const formatterNames = [].concat(formatFiletypes[doc.languageId])
   const formatterConfigs = formatterNames.map(n => formatters[n]).filter(n => n)
+  if (formatterConfigs.length === 0) {
+    return
+  }
   return await formatDocument(formatterConfigs, doc, token)
 })
 
