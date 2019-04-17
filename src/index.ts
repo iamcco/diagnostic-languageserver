@@ -3,6 +3,8 @@ import {
   TextDocuments,
   InitializeParams,
   IConnection,
+  DocumentFormattingParams,
+  CancellationToken,
 } from 'vscode-languageserver';
 
 import { IConfig } from './types';
@@ -30,6 +32,7 @@ connection.onInitialize((param: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
+      documentFormattingProvider: true
     }
   };
 });
@@ -55,6 +58,13 @@ documents.onDidClose((evt) => {
 
 // listen for document's open/close/change
 documents.listen(connection);
+
+connection.onDocumentFormatting((
+  params: DocumentFormattingParams,
+  token: CancellationToken
+) => {
+  return []
+})
 
 // lsp start
 connection.listen();

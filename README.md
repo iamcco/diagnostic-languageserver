@@ -221,6 +221,7 @@ coc-settings.json:
 - [x] local node_modules linter support like eslint or textlint
 - [x] diagnostic severity
 - [x] root pattern
+- [ ] format
 
 ## References
 

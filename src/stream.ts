@@ -3,7 +3,7 @@ import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 
 import { waitMap } from './observable';
-import { handleDiagnostics } from './handle';
+import { handleDiagnostics } from './handleDiagnostic';
 import { ILinterConfig } from './types';
 import logger from './logger';
 
