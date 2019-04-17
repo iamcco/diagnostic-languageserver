@@ -1,5 +1,4 @@
 export type SecurityKey = 'error' | 'warning' | 'info' | 'hint'
-
 export interface ISecurities {
   [key: string]: SecurityKey
 }
@@ -25,12 +24,27 @@ export interface ILinterConfig {
   offsetColumn?: number
 }
 
+// config of per formatter
+export interface IFormatterConfig {
+  command: string
+  args?: Array<string|number>
+  rootPatterns?: string[] | string
+  isStdout?: boolean
+  isStderr?: boolean
+}
+
 // initializationOptions config
 export interface IConfig {
   linters: {
     [linter: string]: ILinterConfig
   }
   filetypes: {
+    [fileType: string]: string | string[]
+  }
+  formatters: {
+    [formatter: string]: IFormatterConfig
+  }
+  formatFiletypes: {
     [fileType: string]: string | string[]
   }
 }

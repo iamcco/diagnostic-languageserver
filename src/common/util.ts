@@ -1,4 +1,7 @@
+import fs from 'fs';
+import path from 'path';
 import { Readable } from 'stream';
+import findup from 'findup';
 import { SpawnOptions, spawn } from 'child_process';
 
 export function executeFile(
@@ -65,4 +68,31 @@ export function pcb(
       })
     })
   }
+}
+
+// find work dirname by root patterns
+export async function findWorkDirectory(
+  filePath: string,
+  rootPatterns: string | string[]
+): Promise<string> {
+  const dirname = path.dirname(filePath)
+  let patterns = [].concat(rootPatterns)
+  for (const pattern of patterns) {
+    const [err, dir] =  await pcb(findup)(dirname, pattern)
+    if (!err && dir && dir !== '/') {
+      return dir
+    }
+  }
+  return dirname
+}
+
+export async function findCommand(command: string, workDir: string) {
+  if (/^(\.\.|\.)/.test(command)) {
+    let cmd = path.join(workDir, command)
+    if (fs.existsSync(cmd)) {
+      return command
+    }
+    return path.basename(cmd)
+  }
+  return command
 }

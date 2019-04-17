@@ -11,11 +11,11 @@ import fs from 'fs';
 import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 
-import { waitMap } from './observable';
-import { ILinterConfig, SecurityKey } from './types';
-import { executeFile, pcb } from './util';
-import HunkStream from './hunkStream';
-import logger from './logger';
+import { waitMap } from '../common/observable';
+import { ILinterConfig, SecurityKey } from '../common/types';
+import { executeFile, pcb, findWorkDirectory, findCommand } from '../common/util';
+import HunkStream from '../common/hunkStream';
+import logger from '../common/logger';
 
 const securityMap = {
   'error': DiagnosticSeverity.Error,
@@ -23,6 +23,12 @@ const securityMap = {
   'info': DiagnosticSeverity.Information,
   'hint': DiagnosticSeverity.Hint
 }
+
+const origin$: Subject<TextDocument> = new Subject<TextDocument>()
+
+const subscriptions: {
+  [uri: string]: Subscription
+} = {}
 
 function sumNum(num: string | undefined, ...args: number[]) {
   if (num === undefined) {
@@ -52,49 +58,7 @@ function getSecurity(
   return security !== undefined ? security : 1
 }
 
-// find work dirname by root patterns
-async function findWorkDirectory(
-  filePath: string,
-  rootPatterns: string | string[]
-): Promise<string> {
-  const dirname = path.dirname(filePath)
-  let patterns = [].concat(rootPatterns)
-  for (const pattern of patterns) {
-    const [err, dir] =  await pcb(findup)(dirname, pattern)
-    if (!err && dir && dir !== '/') {
-      return dir
-    }
-  }
-  return dirname
-}
-
-async function findCommand(command: string, workDir: string) {
-  if (/^(\.\.|\.)/.test(command)) {
-    let cmd = path.join(workDir, command)
-    if (fs.existsSync(cmd)) {
-      return command
-    }
-    return path.basename(cmd)
-  }
-  return command
-}
-
-export async function handleDiagnostics(
-  textDocument: TextDocument,
-  configs: ILinterConfig[]
-) {
-  let diagnostics: Diagnostic[] = []
-  for (const linter of configs) {
-    const dias = await handleLinter(textDocument, linter)
-    diagnostics = diagnostics.concat(dias)
-  }
-  return {
-    uri: textDocument.uri,
-    diagnostics
-  }
-}
-
-export async function handleLinter (
+async function handleLinter (
   textDocument: TextDocument,
   config: ILinterConfig
 ): Promise<Diagnostic[]> {
@@ -178,11 +142,20 @@ export async function handleLinter (
   return diagnostics
 }
 
-const origin$: Subject<TextDocument> = new Subject<TextDocument>()
-
-const subscriptions: {
-  [uri: string]: Subscription
-} = {}
+async function handleDiagnostics(
+  textDocument: TextDocument,
+  configs: ILinterConfig[]
+) {
+  let diagnostics: Diagnostic[] = []
+  for (const linter of configs) {
+    const dias = await handleLinter(textDocument, linter)
+    diagnostics = diagnostics.concat(dias)
+  }
+  return {
+    uri: textDocument.uri,
+    diagnostics
+  }
+}
 
 export function next(
   textDocument: TextDocument,

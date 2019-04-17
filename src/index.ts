@@ -7,9 +7,13 @@ import {
   CancellationToken,
 } from 'vscode-languageserver';
 
-import { IConfig } from './types';
-import { next, unsubscribe } from './stream';
-import logger from './logger';
+import { IConfig } from './common/types';
+import {
+  next as diagnosticNext,
+  unsubscribe as diagnosticUnsubscribe
+} from './handles/handleDiagnostic'
+import logger from './common/logger';
+import { formatDocument } from './handles/handleFormat';
 
 // create connection by command argv
 const connection: IConnection = createConnection();
@@ -49,21 +53,33 @@ documents.onDidChangeContent(( change ) => {
   if (configItems.length === 0) {
     return
   }
-  next(textDocument, connection, configItems)
+  diagnosticNext(textDocument, connection, configItems)
 });
 
 documents.onDidClose((evt) => {
-  unsubscribe(evt.document)
+  diagnosticUnsubscribe(evt.document)
 })
 
 // listen for document's open/close/change
 documents.listen(connection);
 
-connection.onDocumentFormatting((
+// handle format request
+connection.onDocumentFormatting(async (
   params: DocumentFormattingParams,
   token: CancellationToken
 ) => {
-  return []
+  const { textDocument } = params
+  if (!textDocument || !textDocument.uri) {
+    return null
+  }
+  const doc = documents.get(textDocument.uri)
+  if (!doc) {
+    return
+  }
+  const { formatters, formatFiletypes } = config
+  const formatterNames = [].concat(formatFiletypes[doc.languageId])
+  const formatterConfigs = formatterNames.map(n => formatters[n]).filter(n => n)
+  return await formatDocument(formatterConfigs, doc, token)
 })
 
 // lsp start
