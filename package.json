@@ -1,6 +1,6 @@
 {
   "name": "diagnostic-languageserver",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "diagnostic language server",
   "main": "./lib/index.js",
   "repository": "git@github.com:iamcco/diagnostic-languageserver.git",
