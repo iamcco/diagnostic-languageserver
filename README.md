@@ -3,6 +3,12 @@
 > General purpose Language Server that integrate with
 > linter to support diagnostic features
 
+## Main features
+
+- diagnostic with linters
+- document format
+
+**screenshot with neovim and coc**
 ![image](https://user-images.githubusercontent.com/5492542/54487533-15590b80-48d2-11e9-8cba-7e58c0edcf6f.png)
 
 ## Install
