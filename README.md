@@ -182,6 +182,8 @@ and your `formatPattern` field will be:
 
 ## Example with [coc.nvim](https://github.com/neoclide/coc.nvim)
 
+> also if you use coc, you can use this extension https://github.com/iamcco/coc-diagnostic
+
 1. [shellcheck](https://github.com/koalaman/shellcheck) for shell
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
 3. more [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) config example.
