@@ -5,6 +5,7 @@ import {
   IConnection,
   DocumentFormattingParams,
   CancellationToken,
+  TextDocumentChangeEvent,
 } from 'vscode-languageserver';
 
 import { IConfig } from './common/types';
@@ -41,8 +42,7 @@ connection.onInitialize((param: InitializeParams) => {
   };
 });
 
-// document change or open
-documents.onDidChangeContent(( change ) => {
+const handleDiagnostic = ( change: TextDocumentChangeEvent ) => {
   const textDocument = change.document
   const { linters = {}, filetypes = {} } = config
   if (!filetypes[textDocument.languageId]) {
@@ -54,7 +54,13 @@ documents.onDidChangeContent(( change ) => {
     return
   }
   diagnosticNext(textDocument, connection, configItems)
-});
+}
+
+// document change or open
+documents.onDidChangeContent(handleDiagnostic);
+
+// document will save
+documents.onDidSave(handleDiagnostic)
 
 documents.onDidClose((evt) => {
   diagnosticUnsubscribe(evt.document)
