@@ -18,6 +18,7 @@ export interface ILinterConfig {
     column: number,
     message: Array<number|string> | number,
     security: number
+    file: string
   }]
   securities?: ISecurities
   offsetLine?: number
