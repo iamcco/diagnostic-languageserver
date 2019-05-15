@@ -30,6 +30,7 @@ async function handleFormat(
     stderr = ''
   } = await executeFile(
     new HunkStream(text),
+    textDocument,
     cmd,
     args,
     {

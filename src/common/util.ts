@@ -1,3 +1,7 @@
+import {
+  TextDocument,
+} from 'vscode-languageserver';
+import VscUri from 'vscode-uri';
 import fs from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
@@ -6,6 +10,7 @@ import { SpawnOptions, spawn } from 'child_process';
 
 export function executeFile(
   input: Readable,
+  textDocument: TextDocument,
   command: string,
   args?: any[],
   option?: SpawnOptions
@@ -15,6 +20,8 @@ export function executeFile(
   stderr: string
 }> {
   return new Promise((resolve, reject) => {
+    const fpath = VscUri.parse(textDocument.uri).path
+
     let stdout = ''
     let stderr = ''
     let error: Error
@@ -24,6 +31,9 @@ export function executeFile(
       if (/%text/.test(arg)) {
         isPassAsText = true
         return arg.replace(/%text/g, input.toString())
+      }
+      if (/%file/.test(arg)) {
+        return arg.replace(/%file/g, fpath.toString())
       }
       return arg
     })
