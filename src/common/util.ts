@@ -25,14 +25,15 @@ export function executeFile(
     let stdout = ''
     let stderr = ''
     let error: Error
-    let isPassAsText = false
+    let notUsePip = false
 
     args = (args || []).map(arg => {
       if (/%text/.test(arg)) {
-        isPassAsText = true
+        notUsePip = true
         return arg.replace(/%text/g, input.toString())
       }
       if (/%file/.test(arg)) {
+        notUsePip = true
         return arg.replace(/%file/g, fpath.toString())
       }
       return arg
@@ -60,7 +61,7 @@ export function executeFile(
     });
 
     // error will occur when cp get error
-    if (!isPassAsText) {
+    if (!notUsePip) {
       input.pipe(cp.stdin).on('error', () => {})
     }
 
