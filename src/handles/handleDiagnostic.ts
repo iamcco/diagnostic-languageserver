@@ -85,7 +85,7 @@ async function handleLinter (
   try {
     const workDir = await findWorkDirectory(
       VscUri.parse(textDocument.uri).path,
-      rootPatterns
+      rootPatterns,
     )
     const cmd = await findCommand(command, workDir)
     const {
@@ -93,6 +93,7 @@ async function handleLinter (
       stderr = ''
     } = await executeFile(
       new HunkStream(text),
+      textDocument,
       cmd,
       args,
       {
