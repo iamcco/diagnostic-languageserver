@@ -1,6 +1,6 @@
 {
   "name": "diagnostic-languageserver",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "diagnostic language server",
   "main": "./lib/index.js",
   "repository": "git@github.com:iamcco/diagnostic-languageserver.git",
@@ -8,8 +8,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p ./",
-    "watch": "tsc -w -p ./",
-    "postinstall": "yarn build"
+    "watch": "tsc -w -p ./"
   },
   "bin": {
     "diagnostic-languageserver": "./bin/index.js"
