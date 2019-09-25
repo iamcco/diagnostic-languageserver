@@ -108,6 +108,14 @@ languageserver config:
 }
 ```
 
+## Args additional syntax
+
+`args: ["%text", "%filename", "%file"]`
+
+- `%filename` will replace with file name
+- `%text` will replace with file content
+- `%file` will replace with file name and not use stdio
+
 ## How to config a new linter
 
 [shellcheck](https://github.com/koalaman/shellcheck) for example:
