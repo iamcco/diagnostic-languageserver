@@ -190,13 +190,16 @@ and your `formatPattern` field will be:
 
 ## Example with [coc.nvim](https://github.com/neoclide/coc.nvim)
 
-> also if you use coc, you can use this extension https://github.com/iamcco/coc-diagnostic
+> Each LSP client should support `initializationOptions` option,
+> all you need for `diagnostic-languageserver` is put the config in `initializationOptions` option.
 
 1. [shellcheck](https://github.com/koalaman/shellcheck) for shell
 2. [languagetool](https://github.com/languagetool-org/languagetool) for grammer check
 3. more [Linters](https://github.com/iamcco/diagnostic-languageserver/wiki/Linters) config example.
 
 coc-settings.json:
+
+> you can use this extension https://github.com/iamcco/coc-diagnostic
 
 ``` jsonc
 {
