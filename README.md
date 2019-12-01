@@ -75,7 +75,11 @@ languageserver config:
       "error": "error",                              // [key: string]?: "error" | "warning" | "info" | "hint"
       "warning": "warning",
       "note": "info"
-    }
+    },
+    "requiredFiles": [                               // only run linter if any of these files exist. option
+      ".shellcheckrc",
+      "shellcheckrc"
+    ]
   }
 }
 ```
@@ -97,6 +101,10 @@ languageserver config:
     "rootPatterns": [],                        // root patterns, default empty array
     "isStdout": true,                          // use stdout output, default true
     "isStderr": false,                         // use stderr output, default false
+    "doesWriteToFile": false,                  // use if formatter doesn't support stdio. should be paired with `%file`
+    "requiredFiles": [                         // only run formatter if any of these files exist. optional
+      ".run_dartfmt",
+    ]
   }
 ```
 
@@ -112,9 +120,10 @@ languageserver config:
 
 `args: ["%text", "%filename", "%file"]`
 
-- `%filename` will replace with file name
+- `%filename` will replace with basename of file
 - `%text` will replace with file content
-- `%file` will replace with file name and not use stdio
+- `%file` will replace with full path to the file and not use stdio
+- `%filepath` will replace with full path to the file
 
 ## How to config a new linter
 
