@@ -5,15 +5,12 @@ import {
   IConnection,
 } from 'vscode-languageserver';
 import VscUri from 'vscode-uri';
-import findup from 'findup';
-import path from 'path';
-import fs from 'fs';
 import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 
 import { waitMap } from '../common/observable';
 import { ILinterConfig, SecurityKey } from '../common/types';
-import { executeFile, pcb, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
+import { executeFile, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 import logger from '../common/logger';
 
