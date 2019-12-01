@@ -61,7 +61,7 @@ async function handleFormat(
       output += stderr
     }
   }
-  return await next(output)
+  return next(output)
 }
 
 
@@ -78,7 +78,7 @@ export async function formatDocument(
       if (token.isCancellationRequested) {
         return
       }
-      return await handleFormat(config, textDocument, text, res)
+      return handleFormat(config, textDocument, text, res)
     }
   }, async (text: string) => text)
 

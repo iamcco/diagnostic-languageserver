@@ -91,7 +91,7 @@ connection.onDocumentFormatting(async (
   if (formatterConfigs.length === 0) {
     return
   }
-  return await formatDocument(formatterConfigs, doc, token)
+  return formatDocument(formatterConfigs, doc, token)
 })
 
 // lsp start
