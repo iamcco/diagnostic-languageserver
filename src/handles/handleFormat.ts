@@ -3,7 +3,7 @@ import { TextEdit, TextDocument, CancellationToken, Range, Position } from 'vsco
 import VscUri from 'vscode-uri';
 
 import { IFormatterConfig } from '../common/types';
-import { findWorkDirectory, findCommand, executeFile } from '../common/util';
+import { findWorkDirectory, findCommand, executeFile, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 
 type Handle = (text: string) => Promise<string>
@@ -25,6 +25,13 @@ async function handleFormat(
     VscUri.parse(textDocument.uri).path,
     rootPatterns
   )
+
+  if (config.requiredFiles && config.requiredFiles.length) {
+    if (!checkAnyFileExists(workDir, config.requiredFiles)) {
+      return next(text)
+    }
+  }
+
   const cmd = await findCommand(command, workDir)
   const {
     stdout = '',

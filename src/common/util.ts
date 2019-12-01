@@ -110,3 +110,13 @@ export async function findCommand(command: string, workDir: string) {
   }
   return command
 }
+
+export function checkAnyFileExists(workDir: string, testPaths: string[]) {
+  for (const testPath of testPaths) {
+    if (fs.existsSync(path.join(workDir , testPath))) {
+      return true
+    }
+  }
+
+  return false
+}

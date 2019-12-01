@@ -13,7 +13,7 @@ import { filter, switchMap, map } from 'rxjs/operators';
 
 import { waitMap } from '../common/observable';
 import { ILinterConfig, SecurityKey } from '../common/types';
-import { executeFile, pcb, findWorkDirectory, findCommand } from '../common/util';
+import { executeFile, pcb, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 import logger from '../common/logger';
 
@@ -87,6 +87,13 @@ async function handleLinter (
       VscUri.parse(textDocument.uri).path,
       rootPatterns,
     )
+
+    if (config.requiredFiles && config.requiredFiles.length) {
+      if (!checkAnyFileExists(workDir, config.requiredFiles)) {
+        return diagnostics
+      }
+    }
+
     const cmd = await findCommand(command, workDir)
     const {
       stdout = '',

@@ -22,6 +22,7 @@ export interface ILinterConfig {
   securities?: ISecurities
   offsetLine?: number
   offsetColumn?: number
+  requiredFiles?: string[]
 }
 
 // config of per formatter
@@ -32,6 +33,7 @@ export interface IFormatterConfig {
   isStdout?: boolean
   isStderr?: boolean
   doesWriteToFile?: boolean
+  requiredFiles?: string[]
 }
 
 // initializationOptions config
