@@ -28,7 +28,8 @@ async function handleFormat(
   const cmd = await findCommand(command, workDir)
   const {
     stdout = '',
-    stderr = ''
+    stderr = '',
+    code
   } = await executeFile(
     new HunkStream(text),
     textDocument,
@@ -39,7 +40,9 @@ async function handleFormat(
     }
   )
   let output = '';
-  if (config.doesWriteToFile) {
+  if (code > 0) {
+    output = text
+  } else if (config.doesWriteToFile) {
     output = fs.readFileSync(VscUri.parse(textDocument.uri).fsPath, 'utf8')
   } else if (isStdout === undefined && isStderr === undefined) {
     output = stdout
