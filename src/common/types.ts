@@ -31,6 +31,7 @@ export interface IFormatterConfig {
   rootPatterns?: string[] | string
   isStdout?: boolean
   isStderr?: boolean
+  doesWriteToFile?: boolean
 }
 
 // initializationOptions config

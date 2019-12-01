@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { TextEdit, TextDocument, CancellationToken, Range, Position } from 'vscode-languageserver';
 import VscUri from 'vscode-uri';
 
@@ -38,7 +39,9 @@ async function handleFormat(
     }
   )
   let output = '';
-  if (isStdout === undefined && isStderr === undefined) {
+  if (config.doesWriteToFile) {
+    output = fs.readFileSync(VscUri.parse(textDocument.uri).fsPath, 'utf8')
+  } else if (isStdout === undefined && isStderr === undefined) {
     output = stdout
   } else {
     if (isStdout) {
