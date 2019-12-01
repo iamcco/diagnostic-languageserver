@@ -1,8 +1,9 @@
+import fs from 'fs'
 import { TextEdit, TextDocument, CancellationToken, Range, Position } from 'vscode-languageserver';
 import VscUri from 'vscode-uri';
 
 import { IFormatterConfig } from '../common/types';
-import { findWorkDirectory, findCommand, executeFile } from '../common/util';
+import { findWorkDirectory, findCommand, executeFile, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 
 type Handle = (text: string) => Promise<string>
@@ -21,13 +22,21 @@ async function handleFormat(
     args = [],
   } = config
   const workDir = await findWorkDirectory(
-    VscUri.parse(textDocument.uri).path,
+    VscUri.parse(textDocument.uri).fsPath,
     rootPatterns
   )
+
+  if (config.requiredFiles && config.requiredFiles.length) {
+    if (!checkAnyFileExists(workDir, config.requiredFiles)) {
+      return next(text)
+    }
+  }
+
   const cmd = await findCommand(command, workDir)
   const {
     stdout = '',
-    stderr = ''
+    stderr = '',
+    code
   } = await executeFile(
     new HunkStream(text),
     textDocument,
@@ -38,7 +47,11 @@ async function handleFormat(
     }
   )
   let output = '';
-  if (isStdout === undefined && isStderr === undefined) {
+  if (code > 0) {
+    output = text
+  } else if (config.doesWriteToFile) {
+    output = fs.readFileSync(VscUri.parse(textDocument.uri).fsPath, 'utf8')
+  } else if (isStdout === undefined && isStderr === undefined) {
     output = stdout
   } else {
     if (isStdout) {
@@ -48,7 +61,7 @@ async function handleFormat(
       output += stderr
     }
   }
-  return await next(output)
+  return next(output)
 }
 
 
@@ -65,7 +78,7 @@ export async function formatDocument(
       if (token.isCancellationRequested) {
         return
       }
-      return await handleFormat(config, textDocument, text, res)
+      return handleFormat(config, textDocument, text, res)
     }
   }, async (text: string) => text)
 

@@ -5,15 +5,12 @@ import {
   IConnection,
 } from 'vscode-languageserver';
 import VscUri from 'vscode-uri';
-import findup from 'findup';
-import path from 'path';
-import fs from 'fs';
 import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 
 import { waitMap } from '../common/observable';
 import { ILinterConfig, SecurityKey } from '../common/types';
-import { executeFile, pcb, findWorkDirectory, findCommand } from '../common/util';
+import { executeFile, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 import logger from '../common/logger';
 
@@ -84,9 +81,16 @@ async function handleLinter (
   }
   try {
     const workDir = await findWorkDirectory(
-      VscUri.parse(textDocument.uri).path,
+      VscUri.parse(textDocument.uri).fsPath,
       rootPatterns,
     )
+
+    if (config.requiredFiles && config.requiredFiles.length) {
+      if (!checkAnyFileExists(workDir, config.requiredFiles)) {
+        return diagnostics
+      }
+    }
+
     const cmd = await findCommand(command, workDir)
     const {
       stdout = '',

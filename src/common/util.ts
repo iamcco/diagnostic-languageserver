@@ -20,7 +20,7 @@ export function executeFile(
   stderr: string
 }> {
   return new Promise((resolve, reject) => {
-    const fpath = VscUri.parse(textDocument.uri).path
+    const fpath = VscUri.parse(textDocument.uri).fsPath
 
     let stdout = ''
     let stderr = ''
@@ -32,12 +32,15 @@ export function executeFile(
         notUsePip = true
         return arg.replace(/%text/g, input.toString())
       }
+      if (/%filepath/.test(arg)) {
+        return arg.replace(/%filepath/g, fpath)
+      }
       if (/%filename/.test(arg)) {
         return arg.replace(/%filename/g, path.basename(fpath))
       }
       if (/%file/.test(arg)) {
         notUsePip = true
-        return arg.replace(/%file/g, fpath.toString())
+        return arg.replace(/%file/g, fpath)
       }
       return arg
     })
@@ -109,4 +112,14 @@ export async function findCommand(command: string, workDir: string) {
     return path.basename(cmd)
   }
   return command
+}
+
+export function checkAnyFileExists(workDir: string, testPaths: string[]) {
+  for (const testPath of testPaths) {
+    if (fs.existsSync(path.join(workDir , testPath))) {
+      return true
+    }
+  }
+
+  return false
 }
