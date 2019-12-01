@@ -33,7 +33,7 @@ export function executeFile(
         return arg.replace(/%text/g, input.toString())
       }
       if (/%filepath/.test(arg)) {
-        return arg.replace(/%filename/g, fpath)
+        return arg.replace(/%filepath/g, fpath)
       }
       if (/%filename/.test(arg)) {
         return arg.replace(/%filename/g, path.basename(fpath))
