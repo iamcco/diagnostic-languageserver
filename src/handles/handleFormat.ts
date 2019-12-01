@@ -22,7 +22,7 @@ async function handleFormat(
     args = [],
   } = config
   const workDir = await findWorkDirectory(
-    VscUri.parse(textDocument.uri).path,
+    VscUri.parse(textDocument.uri).fsPath,
     rootPatterns
   )
 

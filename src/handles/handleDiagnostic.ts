@@ -81,7 +81,7 @@ async function handleLinter (
   }
   try {
     const workDir = await findWorkDirectory(
-      VscUri.parse(textDocument.uri).path,
+      VscUri.parse(textDocument.uri).fsPath,
       rootPatterns,
     )
 

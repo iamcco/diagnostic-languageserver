@@ -20,7 +20,7 @@ export function executeFile(
   stderr: string
 }> {
   return new Promise((resolve, reject) => {
-    const fpath = VscUri.parse(textDocument.uri).path
+    const fpath = VscUri.parse(textDocument.uri).fsPath
 
     let stdout = ''
     let stderr = ''
