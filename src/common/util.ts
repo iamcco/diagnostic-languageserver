@@ -32,12 +32,15 @@ export function executeFile(
         notUsePip = true
         return arg.replace(/%text/g, input.toString())
       }
+      if (/%filepath/.test(arg)) {
+        return arg.replace(/%filename/g, fpath)
+      }
       if (/%filename/.test(arg)) {
         return arg.replace(/%filename/g, path.basename(fpath))
       }
       if (/%file/.test(arg)) {
         notUsePip = true
-        return arg.replace(/%file/g, fpath.toString())
+        return arg.replace(/%file/g, fpath)
       }
       return arg
     })
