@@ -15,12 +15,14 @@
   },
   "dependencies": {
     "findup": "^0.1.5",
+    "lodash": "^4.17.15",
     "rxjs": "^6.4.0",
     "tslib": "^1.9.3",
     "vscode-languageserver": "^5.3.0-next.1",
     "vscode-uri": "^1.0.6"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.149",
     "@types/node": "^11.11.3",
     "typescript": "^3.3.3333"
   }
