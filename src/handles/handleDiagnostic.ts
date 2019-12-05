@@ -223,6 +223,10 @@ async function handleLinter (
         output += stderr
       }
     }
+
+    return config.parseJson
+      ? handleLinterJson(output, config)
+      : handleLinterRegex(output, config)
   } catch (error) {
     logger.error(`[${textDocument.languageId}] diagnostic handle fail: ${error.message}`)
   }
