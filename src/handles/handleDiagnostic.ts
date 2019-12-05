@@ -55,27 +55,70 @@ function getSecurity(
   return security !== undefined ? security : 1
 }
 
+function handleLinterRegex(output: string, config: ILinterConfig): Diagnostic[] {
+  const {
+    formatLines = 1,
+    formatPattern,
+    offsetLine = 0,
+    offsetColumn = 0,
+    securities = {},
+    sourceName
+  } = config
+  let diagnostics: Diagnostic[] = [];
+
+  if (!formatLines || !formatPattern) {
+    throw new Error('missing formatLines or formatPattern')
+  }
+
+  const { line, column, endLine, endColumn, message, security } = formatPattern[1]
+  const endLineLookup = endLine != null ? endLine : line
+  const endColumnLookup = endColumn != null ? endColumn : column
+  const lines = output.split('\n')
+
+  let str: string = lines.shift()
+  while(lines.length > 0 || str !== undefined) {
+    str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
+    const m = str.match(new RegExp(formatPattern[0]))
+    if (m) {
+      let diagnostic: Diagnostic = {
+        severity: getSecurity(securities[m[security]]),
+        range: {
+          start: {
+            // line and character is base zero so need -1
+            line: sumNum(m[line], -1, offsetLine),
+            character: sumNum(m[column], -1, offsetColumn)
+          },
+          end: {
+            line: sumNum(m[endLineLookup], -1, offsetLine),
+            character: sumNum(m[endColumnLookup], -1, offsetColumn)
+          }
+        },
+        message: formatMessage(message, m),
+        source: sourceName
+      };
+      diagnostics.push(diagnostic);
+    }
+    str = lines.shift()
+  }
+
+  return diagnostics
+}
+
 async function handleLinter (
   textDocument: TextDocument,
   config: ILinterConfig
 ): Promise<Diagnostic[]> {
-  const text = textDocument.getText();
   const {
     command,
     rootPatterns = [],
     args = [],
     sourceName,
-    formatLines = 1,
-    formatPattern,
-    offsetLine = 0,
-    offsetColumn = 0,
     isStdout,
     isStderr,
-    securities = {}
   } = config
   let diagnostics: Diagnostic[] = [];
   // verify params
-  if (!command || !sourceName || !formatLines || !formatPattern) {
+  if (!command || !sourceName) {
     logger.error(`[${textDocument.languageId}] missing config`)
     return diagnostics
   }
@@ -92,11 +135,12 @@ async function handleLinter (
     }
 
     const cmd = await findCommand(command, workDir)
+    let output = ''
     const {
       stdout = '',
       stderr = ''
     } = await executeFile(
-      new HunkStream(text),
+      new HunkStream(textDocument.getText()),
       textDocument,
       cmd,
       args,
@@ -104,42 +148,16 @@ async function handleLinter (
         cwd: workDir
       }
     )
-    let lines = []
+
     if (isStdout == undefined && isStderr === undefined) {
-      lines = stdout.split('\n')
+      output = stdout
     } else {
       if (isStdout) {
-        lines = lines.concat(stdout.split('\n'))
+        output += stdout
       }
       if (isStderr) {
-        lines = lines.concat(stderr.split('\n'))
+        output += stderr
       }
-    }
-    let str: string = lines.shift()
-    while(lines.length > 0 || str !== undefined) {
-      str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
-      const m = str.match(new RegExp(formatPattern[0]))
-      if (m) {
-        const { line, column, message, security } = formatPattern[1]
-        let diagnostic: Diagnostic = {
-          severity: getSecurity(securities[m[security]]),
-          range: {
-            start: {
-              // line and character is base zero so need -1
-              line: sumNum(m[line], -1, offsetLine),
-              character: sumNum(m[column], -1, offsetColumn)
-            },
-            end: {
-              line: sumNum(m[line], -1, offsetLine),
-              character: sumNum(m[column], offsetColumn)
-            }
-          },
-          message: formatMessage(message, m),
-          source: sourceName
-        };
-        diagnostics.push(diagnostic);
-      }
-      str = lines.shift()
     }
   } catch (error) {
     logger.error(`[${textDocument.languageId}] diagnostic handle fail: ${error.message}`)
