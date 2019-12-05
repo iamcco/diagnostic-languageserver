@@ -42,6 +42,15 @@ export interface ILinterConfig {
   },
 }
 
+export interface ILinterResult {
+  security: string
+  line: string | number
+  column: string | number
+  endLine?: string | number
+  endColumn?: string | number
+  message: string
+}
+
 // config of per formatter
 export interface IFormatterConfig {
   command: string

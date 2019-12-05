@@ -9,7 +9,7 @@ import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 
 import { waitMap } from '../common/observable';
-import { ILinterConfig, SecurityKey } from '../common/types';
+import { ILinterConfig, SecurityKey, ILinterResult } from '../common/types';
 import { executeFile, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 import logger from '../common/logger';
@@ -28,11 +28,11 @@ const subscriptions: {
   [uri: string]: Subscription
 } = {}
 
-function sumNum(num: string | undefined, ...args: number[]) {
+function sumNum(num: string | number | undefined, ...args: number[]) {
   if (num === undefined) {
     return 0
   }
-  return args.reduce((res, next) => res + next, parseInt(num, 10))
+  return args.reduce((res, next) => res + next, Number(num))
 }
 
 function formatMessage(
@@ -56,24 +56,18 @@ function getSecurity(
   return security !== undefined ? security : 1
 }
 
-function handleLinterRegex(output: string, config: ILinterConfig): Diagnostic[] {
+function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult[] {
   const {
     formatLines = 1,
     formatPattern,
-    offsetLine = 0,
-    offsetColumn = 0,
-    securities = {},
-    sourceName
   } = config
-  let diagnostics: Diagnostic[] = [];
+  let results: ILinterResult[] = [];
 
   if (!formatLines || !formatPattern) {
     throw new Error('missing formatLines or formatPattern')
   }
 
   const { line, column, endLine, endColumn, message, security } = formatPattern[1]
-  const endLineLookup = endLine != null ? endLine : line
-  const endColumnLookup = endColumn != null ? endColumn : column
   const lines = output.split('\n')
 
   let str: string = lines.shift()
@@ -81,28 +75,20 @@ function handleLinterRegex(output: string, config: ILinterConfig): Diagnostic[] 
     str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
     const m = str.match(new RegExp(formatPattern[0]))
     if (m) {
-      let diagnostic: Diagnostic = {
-        severity: getSecurity(securities[m[security]]),
-        range: {
-          start: {
-            // line and character is base zero so need -1
-            line: sumNum(m[line], -1, offsetLine),
-            character: sumNum(m[column], -1, offsetColumn)
-          },
-          end: {
-            line: sumNum(m[endLineLookup], -1, offsetLine),
-            character: sumNum(m[endColumnLookup], -1, offsetColumn)
-          }
-        },
+      let diagnostic: ILinterResult = {
+        security: m[security],
+        line: m[line],
+        column: m[column],
+        endLine: endLine != null ? m[endLine] : undefined,
+        endColumn: endColumn != null ? m[endColumn] : undefined,
         message: formatMessage(message, m),
-        source: sourceName
       };
-      diagnostics.push(diagnostic);
+      results.push(diagnostic);
     }
     str = lines.shift()
   }
 
-  return diagnostics
+  return results
 }
 
 const variableFinder = /\$\{[^}]+}/g;
@@ -119,18 +105,11 @@ function formatStringWithObject<T extends Record<string, any> | any[]>(
   });
 }
 
-function handleLinterJson(output: string, config: ILinterConfig): Diagnostic[] {
-  logger.error(output)
+function handleLinterJson(output: string, config: ILinterConfig): ILinterResult[] {
   if (!config.parseJson) {
     throw new Error('missing parseJson')
   }
 
-  const {
-    offsetLine = 0,
-    offsetColumn = 0,
-    securities = {},
-    sourceName
-  } = config
   const {
     errorsRoot,
     line,
@@ -141,29 +120,18 @@ function handleLinterJson(output: string, config: ILinterConfig): Diagnostic[] {
     message,
   } = config.parseJson
 
-  const endLineLookup = endLine || line;
-  const endColumnLookup = endColumn || column;
-
   const diagnosticsFromJson: any[] = errorsRoot
     ? lodashGet(JSON.parse(output), errorsRoot, [])
     : JSON.parse(output)
 
-  return diagnosticsFromJson.map<Diagnostic>(x => {
+  return diagnosticsFromJson.map<ILinterResult>(x => {
     return {
-      severity: getSecurity(securities[lodashGet(x, security, '')]),
-      range: {
-        start: {
-          // line and character is base zero so need -1
-          line: sumNum(lodashGet(x, line, -1), -1, offsetLine),
-          character: sumNum(lodashGet(x, column, -1), -1, offsetColumn)
-        },
-        end: {
-          line: sumNum(lodashGet(x, endLineLookup, -1), -1, offsetLine),
-          character: sumNum(lodashGet(x, endColumnLookup, -1), -1, offsetColumn)
-        }
-      },
+      security: lodashGet(x, security, ''),
+      line: lodashGet(x, line, -1),
+      column: lodashGet(x, column, -1),
+      endLine: endLine ? lodashGet(x, endLine, -1) : undefined,
+      endColumn: endColumn ? lodashGet(x, endColumn, -1) : undefined,
       message: formatStringWithObject(message, x),
-      source: sourceName
     }
   });
 }
@@ -176,9 +144,12 @@ async function handleLinter (
     command,
     rootPatterns = [],
     args = [],
+    offsetLine = 0,
+    offsetColumn = 0,
     sourceName,
     isStdout,
     isStderr,
+    securities = {}
   } = config
   const diagnostics: Diagnostic[] = [];
   // verify params
@@ -224,9 +195,35 @@ async function handleLinter (
       }
     }
 
-    return config.parseJson
+    const results: ILinterResult[] = config.parseJson
       ? handleLinterJson(output, config)
       : handleLinterRegex(output, config)
+
+    return results.map<Diagnostic>((linterResult) => {
+      const endLine = linterResult.endLine != null
+        ? linterResult.endLine
+        : linterResult.line
+      const endColumn = linterResult.endColumn != null
+        ? linterResult.endColumn
+        : linterResult.column
+
+      return {
+        severity: getSecurity(securities[linterResult.security]),
+        range: {
+          start: {
+            // line and character is base zero so need -1
+            line: sumNum(linterResult.line, -1, offsetLine),
+            character: sumNum(linterResult.column, -1, offsetColumn)
+          },
+          end: {
+            line: sumNum(endLine, -1, offsetLine),
+            character: sumNum(endColumn, -1, offsetColumn)
+          }
+        },
+        message: linterResult.message,
+        source: sourceName
+      }
+    })
   } catch (error) {
     logger.error(`[${textDocument.languageId}] diagnostic handle fail: [${sourceName}] ${error.message}`)
   }
