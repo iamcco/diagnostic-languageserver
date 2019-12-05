@@ -13,6 +13,7 @@ import { ILinterConfig, SecurityKey } from '../common/types';
 import { executeFile, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
 import logger from '../common/logger';
+import lodashGet from 'lodash/get';
 
 const securityMap = {
   'error': DiagnosticSeverity.Error,
@@ -102,6 +103,69 @@ function handleLinterRegex(output: string, config: ILinterConfig): Diagnostic[] 
   }
 
   return diagnostics
+}
+
+const variableFinder = /\$\{[^}]+}/g;
+
+function formatStringWithObject<T extends Record<string, any> | any[]>(
+  str: string,
+  obj: T
+) {
+  return str.replace(variableFinder, k => {
+    // Remove `${` and `}`
+    const lookup = k.slice(2, -1).trim();
+
+    return lodashGet(obj, lookup, '');
+  });
+}
+
+function handleLinterJson(output: string, config: ILinterConfig): Diagnostic[] {
+  logger.error(output)
+  if (!config.parseJson) {
+    throw new Error('missing parseJson')
+  }
+
+  const {
+    offsetLine = 0,
+    offsetColumn = 0,
+    securities = {},
+    sourceName
+  } = config
+  const {
+    errorsRoot,
+    line,
+    column,
+    endLine,
+    endColumn,
+    security,
+    message,
+  } = config.parseJson
+
+  const endLineLookup = endLine || line;
+  const endColumnLookup = endColumn || column;
+
+  const diagnosticsFromJson: any[] = errorsRoot
+    ? lodashGet(JSON.parse(output), errorsRoot, [])
+    : JSON.parse(output)
+
+  return diagnosticsFromJson.map<Diagnostic>(x => {
+    return {
+      severity: getSecurity(securities[lodashGet(x, security, '')]),
+      range: {
+        start: {
+          // line and character is base zero so need -1
+          line: sumNum(lodashGet(x, line, -1), -1, offsetLine),
+          character: sumNum(lodashGet(x, column, -1), -1, offsetColumn)
+        },
+        end: {
+          line: sumNum(lodashGet(x, endLineLookup, -1), -1, offsetLine),
+          character: sumNum(lodashGet(x, endColumnLookup, -1), -1, offsetColumn)
+        }
+      },
+      message: formatStringWithObject(message, x),
+      source: sourceName
+    }
+  });
 }
 
 async function handleLinter (
