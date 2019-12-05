@@ -16,6 +16,8 @@ export interface ILinterConfig {
   formatPattern: [string, {
     line: number,
     column: number,
+    endLine?: number,
+    endColumn?: number,
     message: Array<number|string> | number,
     security: number
   }]
@@ -23,6 +25,21 @@ export interface ILinterConfig {
   offsetLine?: number
   offsetColumn?: number
   requiredFiles?: string[]
+  parseJson?: {
+    // Dot separated path. If empty, simply use the root.
+    errorsRoot?: string | string[]
+
+    line: string
+    column: string
+
+    // If left out, just use line / column
+    endLine?: string
+    endColumn?: string
+
+    // Will be parsed from the error object.
+    message: string
+    security: string
+  },
 }
 
 // config of per formatter
