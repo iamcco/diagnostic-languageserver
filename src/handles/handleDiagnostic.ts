@@ -61,7 +61,7 @@ function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult
     formatLines = 1,
     formatPattern,
   } = config
-  let results: ILinterResult[] = [];
+  let linterResults: ILinterResult[] = [];
 
   if (!formatLines || !formatPattern) {
     throw new Error('missing formatLines or formatPattern')
@@ -75,20 +75,19 @@ function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult
     str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
     const m = str.match(new RegExp(formatPattern[0]))
     if (m) {
-      let diagnostic: ILinterResult = {
+      linterResults.push({
         security: m[security],
         line: m[line],
         column: m[column],
         endLine: endLine != null ? m[endLine] : undefined,
         endColumn: endColumn != null ? m[endColumn] : undefined,
         message: formatMessage(message, m),
-      };
-      results.push(diagnostic);
+      });
     }
     str = lines.shift()
   }
 
-  return results
+  return linterResults
 }
 
 const variableFinder = /\$\{[^}]+}/g;
@@ -120,18 +119,18 @@ function handleLinterJson(output: string, config: ILinterConfig): ILinterResult[
     message,
   } = config.parseJson
 
-  const diagnosticsFromJson: any[] = errorsRoot
+  const resultsFromJson: any[] = errorsRoot
     ? lodashGet(JSON.parse(output), errorsRoot, [])
     : JSON.parse(output)
 
-  return diagnosticsFromJson.map<ILinterResult>(x => {
+  return resultsFromJson.map<ILinterResult>(jsonObject => {
     return {
-      security: lodashGet(x, security, ''),
-      line: lodashGet(x, line, -1),
-      column: lodashGet(x, column, -1),
-      endLine: endLine ? lodashGet(x, endLine, -1) : undefined,
-      endColumn: endColumn ? lodashGet(x, endColumn, -1) : undefined,
-      message: formatStringWithObject(message, x),
+      security: lodashGet(jsonObject, security, ''),
+      line: lodashGet(jsonObject, line, -1),
+      column: lodashGet(jsonObject, column, -1),
+      endLine: endLine ? lodashGet(jsonObject, endLine, -1) : undefined,
+      endColumn: endColumn ? lodashGet(jsonObject, endColumn, -1) : undefined,
+      message: formatStringWithObject(message, jsonObject),
     }
   });
 }
@@ -195,11 +194,11 @@ async function handleLinter (
       }
     }
 
-    const results: ILinterResult[] = config.parseJson
+    const linterResults: ILinterResult[] = config.parseJson
       ? handleLinterJson(output, config)
       : handleLinterRegex(output, config)
 
-    return results.map<Diagnostic>((linterResult) => {
+    return linterResults.map<Diagnostic>((linterResult) => {
       const endLine = linterResult.endLine != null
         ? linterResult.endLine
         : linterResult.line
