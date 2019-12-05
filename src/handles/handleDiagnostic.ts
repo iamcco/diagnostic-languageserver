@@ -228,7 +228,7 @@ async function handleLinter (
       ? handleLinterJson(output, config)
       : handleLinterRegex(output, config)
   } catch (error) {
-    logger.error(`[${textDocument.languageId}] diagnostic handle fail: ${error.message}`)
+    logger.error(`[${textDocument.languageId}] diagnostic handle fail: [${sourceName}] ${error.message}`)
   }
   return diagnostics
 }
