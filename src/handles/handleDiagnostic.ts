@@ -180,7 +180,7 @@ async function handleLinter (
     isStdout,
     isStderr,
   } = config
-  let diagnostics: Diagnostic[] = [];
+  const diagnostics: Diagnostic[] = [];
   // verify params
   if (!command || !sourceName) {
     logger.error(`[${textDocument.languageId}] missing config`)
