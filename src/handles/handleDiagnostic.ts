@@ -215,8 +215,9 @@ async function handleLinter (
             character: sumNum(linterResult.column, -1, offsetColumn)
           },
           end: {
+            // range: [line, column] - [endLine, endColumn - 1]
             line: sumNum(endLine, -1, offsetLine),
-            character: sumNum(endColumn, -1, offsetColumn)
+            character: sumNum(endColumn, -2, offsetColumn)
           }
         },
         message: linterResult.message,
