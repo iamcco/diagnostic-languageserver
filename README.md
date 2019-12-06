@@ -61,16 +61,35 @@ languageserver config:
     "offsetLine": 0,                                 // offsetline
     "offsetColumn": 0,                               // offsetColumn
     "sourceName": "shellcheck",                      // source name
+
+    // Using regular expressions:
     "formatLines": 1,                                // how much lines for formatPattern[0] to match
     "formatPattern": [
       "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",  // line match pattern (javascript regex)
       {
         "line": 1,                                   // diagnostic line use match group 1
         "column": 2,                                 // diagnostic column use match group 2
+        "endLine": 1,                                // diagnostic end line use match group 1. Will default to group from `line`
+        "endColumn": 2,                              // diagnostic end column use match group 2. Will default to group from `column`
         "message": [4],                              // message to display use match group 4
         "security": 3                                // security to use match group 3, ignore if linter do not support security
       }
     ],
+
+    // Using JSON:
+    "parseJson": {
+      "errorsRoot": "[0].messages",                 // dot separated path. Will default to whatever JSON is output
+                                                     // for more information see examples at https://lodash.com/docs/#get
+
+      // All of these support lodash.get syntax.
+      "line": "line",                                // property that contains the `line`
+      "column": "column",                            // property that contains the `column`
+      "endLine": "endLine",                          // property that contains the `endLine`. Will default to `line`
+      "endColumn": "endColumn",                      // property that contains the `endColumn`. Will default to `column`
+      "security": "severity"                         // property that contains the `security`
+      "message": "${message} [${code}]",             // message to display
+    },
+
     "securities": {                                  // security keys, ignore if linter do not support security
       "error": "error",                              // [key: string]?: "error" | "warning" | "info" | "hint"
       "warning": "warning",
@@ -118,7 +137,7 @@ languageserver config:
 
 ## Args additional syntax
 
-`args: ["%text", "%filename", "%file"]`
+`args: ["%text", "%filename", "%file", "%filepath"]`
 
 - `%filename` will replace with basename of file
 - `%text` will replace with file content
