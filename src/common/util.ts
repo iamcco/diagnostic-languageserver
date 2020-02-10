@@ -3,6 +3,7 @@ import {
 } from 'vscode-languageserver';
 import VscUri from 'vscode-uri';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { Readable } from 'stream';
 import findup from 'findup';
@@ -45,7 +46,11 @@ export function executeFile(
       return arg
     })
 
-    const cp = spawn(command,  args, option);
+    const cp = spawn(
+      command,
+      args,
+      { ...option, shell: os.platform() === 'win32' ? true : undefined }
+    );
 
     cp.stdout.on('data', (data) => {
       stdout += data
