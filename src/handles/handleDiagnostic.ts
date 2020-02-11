@@ -74,6 +74,8 @@ function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult
   while(lines.length > 0 || str !== undefined) {
     str = [str].concat(lines.slice(0, formatLines - 1)).join('\n')
     const m = str.match(new RegExp(formatPattern[0]))
+    logger.log(`match string: ${str}`)
+    logger.log(`match result: ${JSON.stringify(m, null, 2)}`)
     if (m) {
       linterResults.push({
         security: m[security],
@@ -182,6 +184,10 @@ async function handleLinter (
         cwd: workDir
       }
     )
+
+    logger.log(`Linter command: ${cmd}, args: ${JSON.stringify(args)}`)
+    logger.log(`stdout: ${stdout}`)
+    logger.log(`stderr: ${stderr}`)
 
     if (isStdout == undefined && isStderr === undefined) {
       output = stdout
