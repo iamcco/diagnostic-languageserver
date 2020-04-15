@@ -81,8 +81,8 @@ function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult
         security: m[security],
         line: m[line],
         column: m[column],
-        endLine: endLine != null ? m[endLine] : undefined,
-        endColumn: endColumn != null ? m[endColumn] : undefined,
+        endLine: endLine != undefined ? m[endLine] : undefined,
+        endColumn: endColumn != undefined ? m[endColumn] : undefined,
         message: formatMessage(message, m),
       });
     }
@@ -127,11 +127,11 @@ function handleLinterJson(output: string, config: ILinterConfig): ILinterResult[
 
   return resultsFromJson.map<ILinterResult>(jsonObject => {
     return {
-      security: lodashGet(jsonObject, security, ''),
-      line: lodashGet(jsonObject, line, -1),
-      column: lodashGet(jsonObject, column, -1),
-      endLine: endLine ? lodashGet(jsonObject, endLine, -1) : undefined,
-      endColumn: endColumn ? lodashGet(jsonObject, endColumn, -1) : undefined,
+      security: lodashGet(jsonObject, security),
+      line: lodashGet(jsonObject, line),
+      column: lodashGet(jsonObject, column),
+      endLine: endLine ? lodashGet(jsonObject, endLine) : undefined,
+      endColumn: endColumn ? lodashGet(jsonObject, endColumn) : undefined,
       message: formatStringWithObject(message, jsonObject),
     }
   });
@@ -205,20 +205,28 @@ async function handleLinter (
       : handleLinterRegex(output, config)
 
     return linterResults.map<Diagnostic>((linterResult) => {
-      const endLine = linterResult.endLine != null
-        ? linterResult.endLine
-        : linterResult.line
-      const endColumn = linterResult.endColumn != null
-        ? linterResult.endColumn
-        : linterResult.column
+      let { line, column, endLine, endColumn } = linterResult
+      if (line !== undefined && column === undefined &&
+        endLine === undefined && endColumn === undefined) {
+        column = 1
+        endLine = Number(line) + 1
+        endColumn = 1
+      } else {
+        endLine = linterResult.endLine != undefined
+          ? linterResult.endLine
+          : linterResult.line
+        endColumn = linterResult.endColumn != undefined
+          ? linterResult.endColumn
+          : linterResult.column
+      }
 
       return {
         severity: getSecurity(securities[linterResult.security]),
         range: {
           start: {
             // line and character is base zero so need -1
-            line: sumNum(linterResult.line, -1, offsetLine),
-            character: sumNum(linterResult.column, -1, offsetColumn)
+            line: sumNum(line, -1, offsetLine),
+            character: sumNum(column, -1, offsetColumn)
           },
           end: {
             line: sumNum(endLine, -1, offsetLine),
