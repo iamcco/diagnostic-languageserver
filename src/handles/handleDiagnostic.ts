@@ -4,7 +4,7 @@ import {
   Diagnostic,
   IConnection,
 } from 'vscode-languageserver';
-import VscUri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 
@@ -160,7 +160,7 @@ async function handleLinter (
   }
   try {
     const workDir = await findWorkDirectory(
-      VscUri.parse(textDocument.uri).fsPath,
+      URI.parse(textDocument.uri).fsPath,
       rootPatterns,
     )
 

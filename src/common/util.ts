@@ -1,7 +1,7 @@
 import {
   TextDocument,
 } from 'vscode-languageserver';
-import VscUri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -21,7 +21,7 @@ export function executeFile(
   stderr: string
 }> {
   return new Promise((resolve, reject) => {
-    const fpath = VscUri.parse(textDocument.uri).fsPath
+    const fpath = URI.parse(textDocument.uri).fsPath
 
     let stdout = ''
     let stderr = ''

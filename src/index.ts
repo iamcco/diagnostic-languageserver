@@ -6,7 +6,9 @@ import {
   DocumentFormattingParams,
   CancellationToken,
   TextDocumentChangeEvent,
+  TextDocumentSyncKind,
 } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument'
 
 import { IConfig } from './common/types';
 import {
@@ -23,7 +25,7 @@ const connection: IConnection = createConnection();
 logger.init(connection)
 
 // sync text document manager
-const documents: TextDocuments = new TextDocuments();
+const documents = new TextDocuments(TextDocument)
 
 // config of initializationOptions
 let config: IConfig
@@ -36,13 +38,13 @@ connection.onInitialize((param: InitializeParams) => {
 
   return {
     capabilities: {
-      textDocumentSync: documents.syncKind,
+      textDocumentSync: TextDocumentSyncKind.Incremental,
       documentFormattingProvider: true
     }
   };
 });
 
-const handleDiagnostic = ( change: TextDocumentChangeEvent ) => {
+const handleDiagnostic = ( change: TextDocumentChangeEvent<TextDocument> ) => {
   const textDocument = change.document
   const { linters = {}, filetypes = {} } = config
   if (!filetypes[textDocument.languageId]) {

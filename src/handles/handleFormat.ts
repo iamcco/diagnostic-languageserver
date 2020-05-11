@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { TextEdit, TextDocument, CancellationToken, Range, Position } from 'vscode-languageserver';
-import VscUri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 
 import { IFormatterConfig } from '../common/types';
 import { findWorkDirectory, findCommand, executeFile, checkAnyFileExists } from '../common/util';
@@ -22,7 +22,7 @@ async function handleFormat(
     args = [],
   } = config
   const workDir = await findWorkDirectory(
-    VscUri.parse(textDocument.uri).fsPath,
+    URI.parse(textDocument.uri).fsPath,
     rootPatterns
   )
 
@@ -50,7 +50,7 @@ async function handleFormat(
   if (code > 0) {
     output = text
   } else if (config.doesWriteToFile) {
-    output = fs.readFileSync(VscUri.parse(textDocument.uri).fsPath, 'utf8')
+    output = fs.readFileSync(URI.parse(textDocument.uri).fsPath, 'utf8')
   } else if (isStdout === undefined && isStderr === undefined) {
     output = stdout
   } else {
