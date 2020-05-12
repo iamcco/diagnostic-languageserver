@@ -6,7 +6,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { Readable } from 'stream';
-import findup from 'findup';
+import findUp from 'find-up';
 import { SpawnOptions, spawn } from 'child_process';
 
 export function executeFile(
@@ -99,11 +99,16 @@ export async function findWorkDirectory(
 ): Promise<string> {
   const dirname = path.dirname(filePath)
   let patterns = [].concat(rootPatterns)
-  for (const pattern of patterns) {
-    const [err, dir] =  await pcb(findup)(dirname, pattern)
-    if (!err && dir && dir !== '/') {
+  try {
+    const dir = await findUp(patterns, {
+      cwd: dirname
+    });
+
+    if (dir && dir !== '/') {
       return dir
     }
+  } catch (err) {
+    // do nothing on error
   }
   return dirname
 }
