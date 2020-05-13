@@ -8,6 +8,7 @@ import path from 'path';
 import { Readable } from 'stream';
 import findUp from 'find-up';
 import { SpawnOptions, spawn } from 'child_process';
+import logger from './logger';
 
 export function executeFile(
   input: Readable,
@@ -88,26 +89,15 @@ export async function findWorkDirectory(
   let patterns = [].concat(rootPatterns)
   try {
     for(const pattern of patterns) {
-      // attempt to match for directory patterns
-      let dirMatchPath = await findUp(pattern, {
-        cwd: dirname,
-        type: "directory",
-      })
+      const dir = await findUp(async directory => {
+          const hasMatch = await findUp.exists(path.join(directory, pattern))
+          logger.log(`searching working directory: ${directory}, cwd: ${dirname}, pattern: ${pattern}, matches: ${hasMatch}`)
+          return hasMatch && directory
+      }, {type: 'directory', cwd: dirname})
 
-      if (!dirMatchPath) {
-        // if no directories were found, attempt to match file patterns
-        const fileMatchPath = await findUp(pattern, {
-          cwd: dirname,
-          type: "file",
-        })
 
-        if (fileMatchPath) {
-          dirMatchPath = path.dirname(fileMatchPath)
-        }
-      }
-
-      if (dirMatchPath && dirMatchPath !== "/") {
-        return dirMatchPath
+      if (dir && dir !== "/") {
+        return dir
       }
     }
   } catch (err) {
