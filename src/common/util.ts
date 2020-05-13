@@ -87,12 +87,28 @@ export async function findWorkDirectory(
   const dirname = path.dirname(filePath)
   let patterns = [].concat(rootPatterns)
   try {
-    const dir = await findUp(patterns, {
-      cwd: dirname
-    });
+    for(const pattern of patterns) {
+      // attempt to match for directory patterns
+      let dirMatchPath = await findUp(pattern, {
+        cwd: dirname,
+        type: "directory",
+      })
 
-    if (dir && dir !== '/') {
-      return dir
+      if (!dirMatchPath) {
+        // if no directories were found, attempt to match file patterns
+        const fileMatchPath = await findUp(pattern, {
+          cwd: dirname,
+          type: "file",
+        })
+
+        if (fileMatchPath) {
+          dirMatchPath = path.dirname(fileMatchPath)
+        }
+      }
+
+      if (dirMatchPath && dirMatchPath !== "/") {
+        return dirMatchPath
+      }
     }
   } catch (err) {
     // do nothing on error
