@@ -164,6 +164,8 @@ async function handleLinter (
       rootPatterns,
     )
 
+    logger.info(`found working directory ${workDir}`)
+
     if (config.requiredFiles && config.requiredFiles.length) {
       if (!checkAnyFileExists(workDir, config.requiredFiles)) {
         return diagnostics
