@@ -32,8 +32,8 @@ let logLevel: MessageType = MessageType.Warning
 if (options.logLevel) {
   logLevel = parseInt(options.logLevel, 10) as any;
   if (logLevel && (logLevel < 1 || logLevel > 4)) {
-    console.error("Invalid `--log-level " + logLevel + "`. Falling back to `warn` level.")
-    logLevel = MessageType.Warning
+    console.error("Invalid `--log-level " + logLevel + "`. Falling back to `log` level.")
+    logLevel = MessageType.Log
   }
 }
 
