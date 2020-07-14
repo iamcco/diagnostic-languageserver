@@ -26,7 +26,7 @@ languageserver config:
   "languageserver": {
     "dls": {
       "command": "diagnostic-languageserver",
-      "args": ["--stdio"],
+      "args": ["--stdio", "--log-level", "2"],
       "filetypes": [ "sh", "email" ], // filetypes that you want to enable this lsp
       "initializationOptions": {
         "linters": {

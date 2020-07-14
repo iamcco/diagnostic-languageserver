@@ -14,6 +14,7 @@
     "diagnostic-languageserver": "./bin/index.js"
   },
   "dependencies": {
+    "commander": "^5.1.0",
     "find-up": "^4.1.0",
     "lodash": "^4.17.15",
     "rxjs": "^6.5.5",
