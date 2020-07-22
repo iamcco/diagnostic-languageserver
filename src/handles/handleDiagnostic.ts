@@ -56,7 +56,7 @@ function getSecurity(
   return security !== undefined ? security : 1
 }
 
-function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult[] {
+function handleLinterRegex(currentSourceName: string, output: string, config: ILinterConfig): ILinterResult[] {
   const {
     formatLines = 1,
     formatPattern,
@@ -67,7 +67,7 @@ function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult
     throw new Error('missing formatLines or formatPattern')
   }
 
-  const { line, column, endLine, endColumn, message, security } = formatPattern[1]
+  const { sourceName, line, column, endLine, endColumn, message, security } = formatPattern[1]
   const lines = output.split('\n')
 
   let str: string = lines.shift()
@@ -78,6 +78,7 @@ function handleLinterRegex(output: string, config: ILinterConfig): ILinterResult
     logger.log(`match result: ${JSON.stringify(m, null, 2)}`)
     if (m) {
       linterResults.push({
+        sourceName: sourceName ? m[sourceName] : currentSourceName,
         security: m[security],
         line: m[line],
         column: m[column],
@@ -106,12 +107,13 @@ function formatStringWithObject<T extends Record<string, any> | any[]>(
   });
 }
 
-function handleLinterJson(output: string, config: ILinterConfig): ILinterResult[] {
+function handleLinterJson(currentSourceName: string, output: string, config: ILinterConfig): ILinterResult[] {
   if (!config.parseJson) {
     throw new Error('missing parseJson')
   }
 
   const {
+    sourceName,
     errorsRoot,
     line,
     column,
@@ -127,6 +129,7 @@ function handleLinterJson(output: string, config: ILinterConfig): ILinterResult[
 
   return resultsFromJson.map<ILinterResult>(jsonObject => {
     return {
+      sourceName: sourceName ? lodashGet(jsonObject, sourceName) : currentSourceName,
       security: lodashGet(jsonObject, security),
       line: lodashGet(jsonObject, line),
       column: lodashGet(jsonObject, column),
@@ -203,8 +206,8 @@ async function handleLinter (
     }
 
     const linterResults: ILinterResult[] = config.parseJson
-      ? handleLinterJson(output, config)
-      : handleLinterRegex(output, config)
+      ? handleLinterJson(sourceName, output, config)
+      : handleLinterRegex(sourceName, output, config)
 
     return linterResults.map<Diagnostic>((linterResult) => {
       let { line, column, endLine, endColumn } = linterResult
@@ -236,7 +239,7 @@ async function handleLinter (
           }
         },
         message: linterResult.message,
-        source: sourceName
+        source: linterResult.sourceName,
       }
     })
   } catch (error) {
