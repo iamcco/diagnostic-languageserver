@@ -14,6 +14,7 @@ export interface ILinterConfig {
   sourceName: string
   formatLines?: number
   formatPattern: [string, {
+    sourceName?: string
     line: number,
     column: number,
     endLine?: number,
@@ -29,6 +30,7 @@ export interface ILinterConfig {
     // Dot separated path. If empty, simply use the root.
     errorsRoot?: string | string[]
 
+    sourceName?: string
     line: string
     column: string
 
@@ -43,6 +45,7 @@ export interface ILinterConfig {
 }
 
 export interface ILinterResult {
+  sourceName: string
   security: string
   line: string | number
   column: string | number

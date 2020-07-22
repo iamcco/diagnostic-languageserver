@@ -65,14 +65,15 @@ languageserver config:
     // Using regular expressions:
     "formatLines": 1,                                // how much lines for formatPattern[0] to match
     "formatPattern": [
-      "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",  // line match pattern (javascript regex)
+      "^([^:]+):(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",  // line match pattern (javascript regex)
       {
-        "line": 1,                                   // diagnostic line use match group 1
-        "column": 2,                                 // diagnostic column use match group 2
-        "endLine": 1,                                // diagnostic end line use match group 1. Will default to group from `line`
-        "endColumn": 2,                              // diagnostic end column use match group 2. Will default to group from `column`
-        "message": [4],                              // message to display use match group 4
-        "security": 3                                // security to use match group 3, ignore if linter do not support security
+        "sourceName": 1,                             // diagnostic file use match group 1. Will default to the file being linted.
+        "line": 2,                                   // diagnostic line use match group 2
+        "column": 3,                                 // diagnostic column use match group 3
+        "endLine": 2,                                // diagnostic end line use match group 2. Will default to group from `line`
+        "endColumn": 3,                              // diagnostic end column use match group 3. Will default to group from `column`
+        "message": [5],                              // message to display use match group 5
+        "security": 4                                // security to use match group 4, ignore if linter do not support security
       }
     ],
 
@@ -82,6 +83,7 @@ languageserver config:
                                                      // for more information see examples at https://lodash.com/docs/#get
 
       // All of these support lodash.get syntax.
+      "sourceName": "file",                          // propert that contains the `file`. Will default to the file being linted.
       "line": "line",                                // property that contains the `line`
       "column": "column",                            // property that contains the `column`
       "endLine": "endLine",                          // property that contains the `endLine`. Will default to `line`
