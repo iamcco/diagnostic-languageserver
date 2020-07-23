@@ -1,31 +1,68 @@
 import { IConnection, MessageType } from 'vscode-languageserver';
 
-let connection: IConnection
-let level: MessageType
+class Logger {
+  isInit = false
+  connection: IConnection
+  level: MessageType
+  logs: Array<{type: string, message: string}> = []
 
-export default {
-  init: (con: IConnection, lev: MessageType) => {
-    connection = con
-    level = lev
-  },
-  error: (message: string) => {
-    if (connection && level >= MessageType.Error) {
-      connection.console.error(message)
+  init (con: IConnection, lev: MessageType) {
+    this.connection = con
+    this.level = lev
+    this.isInit = true
+    if (this.logs.length) {
+      this.logs.forEach(log => {
+        if (this[log.type]) {
+          this[log.type](log.message)
+        }
+      })
+      this.logs = []
     }
-  },
-  warn: (message: string) => {
-    if (connection && level >= MessageType.Warning) {
-      connection.console.warn(message)
+  }
+  error (message: string) {
+    if (!this.isInit) {
+      return this.logs.push({
+        type: 'error',
+        message
+      })
     }
-  },
-  info: (message: string) => {
-    if (connection && level >= MessageType.Info) {
-      connection.console.info(message)
+    if (this.connection && this.level >= MessageType.Error) {
+      this.connection.console.error(message)
     }
-  },
-  log: (message: string) => {
-    if (connection && level >= MessageType.Log) {
-      connection.console.log(message)
+  }
+  warn (message: string) {
+    if (!this.isInit) {
+      return this.logs.push({
+        type: 'warn',
+        message
+      })
     }
-  },
+    if (this.connection && this.level >= MessageType.Warning) {
+      this.connection.console.warn(message)
+    }
+  }
+  info (message: string) {
+    if (!this.isInit) {
+      return this.logs.push({
+        type: 'info',
+        message
+      })
+    }
+    if (this.connection && this.level >= MessageType.Info) {
+      this.connection.console.info(message)
+    }
+  }
+  log (message: string) {
+    if (!this.isInit) {
+      return this.logs.push({
+        type: 'log',
+        message
+      })
+    }
+    if (this.connection && this.level >= MessageType.Log) {
+      this.connection.console.log(message)
+    }
+  }
 }
+
+export default new Logger()

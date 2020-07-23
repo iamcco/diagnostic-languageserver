@@ -27,12 +27,13 @@ const options = new Command("diagnostic-languageserver")
   .option("--stdio", "use stdio")
   .option("--node-ipc", "use node-ipc")
   .option("--socket <port>", "use socket. example: --socket=5000")
+  .allowUnknownOption(true)
   .parse(process.argv);
 let logLevel: MessageType = MessageType.Warning
 if (options.logLevel) {
   logLevel = parseInt(options.logLevel, 10) as any;
   if (logLevel && (logLevel < 1 || logLevel > 4)) {
-    console.error("Invalid `--log-level " + logLevel + "`. Falling back to `log` level.")
+    logger.error("Invalid `--log-level " + logLevel + "`. Falling back to `log` level.")
     logLevel = MessageType.Log
   }
 }
