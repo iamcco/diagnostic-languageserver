@@ -15,6 +15,7 @@ export interface ILinterConfig {
   formatLines?: number
   formatPattern: [string, {
     sourceName?: string
+    sourceNameFilter?: boolean
     line: number,
     column: number,
     endLine?: number,
@@ -31,6 +32,7 @@ export interface ILinterConfig {
     errorsRoot?: string | string[]
 
     sourceName?: string
+    sourceNameFilter?: boolean
     line: string
     column: string
 
