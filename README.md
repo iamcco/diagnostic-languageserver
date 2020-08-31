@@ -68,6 +68,9 @@ languageserver config:
       "^([^:]+):(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",  // line match pattern (javascript regex)
       {
         "sourceName": 1,                             // diagnostic file use match group 1. Will default to the file being linted.
+        "sourceNameFilter:" true,                    // Display diagnostics only for the current file.
+                                                     // Only works when sourceName is defined and when it contains either an absolute
+                                                     // or relative path to the file being linted. Defaults to false.
         "line": 2,                                   // diagnostic line use match group 2
         "column": 3,                                 // diagnostic column use match group 3
         "endLine": 2,                                // diagnostic end line use match group 2. Will default to group from `line`
@@ -84,6 +87,9 @@ languageserver config:
 
       // All of these support lodash.get syntax.
       "sourceName": "file",                          // propert that contains the `file`. Will default to the file being linted.
+      "sourceNameFilter:" true,                      // Display diagnostics only for the current file.
+                                                     // Only works when sourceName is defined and when it contains either an absolute
+                                                     // or relative path to the file being linted. Defaults to false.
       "line": "line",                                // property that contains the `line`
       "column": "column",                            // property that contains the `column`
       "endLine": "endLine",                          // property that contains the `endLine`. Will default to `line`
