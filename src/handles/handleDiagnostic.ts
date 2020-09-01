@@ -222,7 +222,7 @@ async function handleLinter (
 
     // Check if we should filter based on the sourceName.
     if ((config.parseJson && config.parseJson.sourceNameFilter)
-      || config.formatPattern[1].sourceNameFilter) {
+      || config.formatPattern && config.formatPattern[1].sourceNameFilter) {
       const lengthBefore = linterResults.length;
       // Only use results that belong to the current file.
       linterResults = linterResults.filter(x => {
