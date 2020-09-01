@@ -7,6 +7,7 @@ import {
 import { URI } from 'vscode-uri';
 import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
+import { isAbsolute, join } from 'path';
 
 import { waitMap } from '../common/observable';
 import { ILinterConfig, SecurityKey, ILinterResult } from '../common/types';
@@ -161,11 +162,21 @@ async function handleLinter (
     logger.error(`[${textDocument.languageId}] missing config`)
     return diagnostics
   }
+
+  // Validate when sourceNameFilter is given that sourceName is also given.
+  if (config.formatPattern && (!config.formatPattern[1].sourceName && config.formatPattern[1].sourceNameFilter)) {
+    logger.error(
+      `[${textDocument.languageId}] formatPattern.sourceNameFilter can only be used when formatPattern.sourceName is defined`)
+    return diagnostics
+  } else if (config.parseJson && (!config.parseJson.sourceName && config.parseJson.sourceNameFilter)) {
+    logger.error(
+      `[${textDocument.languageId}] parseJson.sourceNameFilter can only be used when parseJson.sourceName is defined`)
+    return diagnostics
+  }
+
   try {
-    const workDir = await findWorkDirectory(
-      URI.parse(textDocument.uri).fsPath,
-      rootPatterns,
-    )
+    const currentFile = URI.parse(textDocument.uri).fsPath
+    const workDir = await findWorkDirectory(currentFile, rootPatterns)
 
     logger.info(`found working directory ${workDir}`)
 
@@ -205,9 +216,23 @@ async function handleLinter (
       }
     }
 
-    const linterResults: ILinterResult[] = config.parseJson
+    let linterResults: ILinterResult[] = config.parseJson
       ? handleLinterJson(sourceName, output, config)
       : handleLinterRegex(sourceName, output, config)
+
+    // Check if we should filter based on the sourceName.
+    if ((config.parseJson && config.parseJson.sourceNameFilter)
+      || config.formatPattern[1].sourceNameFilter) {
+      const lengthBefore = linterResults.length;
+      // Only use results that belong to the current file.
+      linterResults = linterResults.filter(x => {
+        // Check if the linter returned an absolute or relative path.
+        return isAbsolute(x.sourceName)
+          ? currentFile === x.sourceName
+          : currentFile === join(workDir, x.sourceName)
+      })
+      logger.log(`Linting results after filtering: ${linterResults.length} (before: ${lengthBefore})`)
+    }
 
     return linterResults.map<Diagnostic>((linterResult) => {
       let { line, column, endLine, endColumn } = linterResult
