@@ -94,7 +94,7 @@ languageserver config:
       "column": "column",                            // property that contains the `column`
       "endLine": "endLine",                          // property that contains the `endLine`. Will default to `line`
       "endColumn": "endColumn",                      // property that contains the `endColumn`. Will default to `column`
-      "security": "severity"                         // property that contains the `security`
+      "security": "severity",                        // property that contains the `security`
       "message": "${message} [${code}]",             // message to display
     },
 
