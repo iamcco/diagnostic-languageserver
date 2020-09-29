@@ -8,9 +8,11 @@ import path from 'path';
 import { Readable } from 'stream';
 import findUp from 'find-up';
 import { SpawnOptions, spawn } from 'child_process';
+import tempy from 'tempy';
+import del from 'del';
 import logger from './logger';
 
-export function executeFile(
+export async function executeFile(
   input: Readable,
   textDocument: TextDocument,
   command: string,
@@ -21,63 +23,99 @@ export function executeFile(
   stdout: string,
   stderr: string
 }> {
-  return new Promise((resolve, reject) => {
-    const fpath = URI.parse(textDocument.uri).fsPath
+  const fpath = URI.parse(textDocument.uri).fsPath
 
+  let usePipe = true
+  let tempFilename: string | undefined;
+
+  args = await Promise.all((args || []).map(async arg => {
+    if (/%text/.test(arg)) {
+      usePipe = false
+      return arg.replace(/%text/g, input.toString())
+    }
+    if (/%filepath/.test(arg)) {
+      return arg.replace(/%filepath/g, fpath)
+    }
+    if (/%filename/.test(arg)) {
+      return arg.replace(/%filename/g, path.basename(fpath))
+    }
+    if (/%file/.test(arg)) {
+      usePipe = false
+      return arg.replace(/%file/g, fpath)
+    }
+    if (/%tempfile/.test(arg)) {
+      usePipe = false
+      tempFilename = await tempy.write(input, { extension: path.extname(fpath) })
+      return arg.replace(/%tempfile/g, tempFilename);
+    }
+
+    return arg
+  }))
+
+  const result = await spawnAsync(
+    command,
+    args,
+    {
+      ...option,
+      shell: os.platform() === 'win32' ? true : undefined,
+      input: usePipe ? input : undefined
+    }
+  );
+
+  if (tempFilename != null) {
+    await del(tempFilename, { force: true });
+  }
+
+  return result;
+}
+
+export interface SpawnAsyncOptions extends SpawnOptions {
+  input?: Readable
+}
+
+export async function spawnAsync(
+  command: string,
+  args: ReadonlyArray<string>,
+  options: SpawnAsyncOptions
+): Promise<{
+  code: number,
+  stdout: string,
+  stderr: string
+}> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      command,
+      args,
+      { ...options, shell: os.platform() === 'win32' ? true : undefined }
+    );
     let stdout = ''
     let stderr = ''
     let error: Error
-    let notUsePip = false
 
-    args = (args || []).map(arg => {
-      if (/%text/.test(arg)) {
-        notUsePip = true
-        return arg.replace(/%text/g, input.toString())
-      }
-      if (/%filepath/.test(arg)) {
-        return arg.replace(/%filepath/g, fpath)
-      }
-      if (/%filename/.test(arg)) {
-        return arg.replace(/%filename/g, path.basename(fpath))
-      }
-      if (/%file/.test(arg)) {
-        notUsePip = true
-        return arg.replace(/%file/g, fpath)
-      }
-      return arg
-    })
-
-    const cp = spawn(
-      command,
-      args,
-      { ...option, shell: os.platform() === 'win32' ? true : undefined }
-    );
-
-    cp.stdout.on('data', (data) => {
+    child.stdout.on('data', (data) => {
       stdout += data
     });
 
-    cp.stderr.on('data', (data) => {
+    child.stderr.on('data', (data) => {
       stderr += data
     });
 
-    cp.on('error', (err: Error) => {
+    child.on('error', (err: Error) => {
       error = err
       reject(error)
-    })
+    });
 
-    cp.on('close', (code) => {
+    child.on('close', (code) => {
       if (!error) {
         resolve({ code, stdout, stderr })
       }
     });
 
     // error will occur when cp get error
-    if (!notUsePip) {
-      input.pipe(cp.stdin).on('error', () => {})
+    if (options.input) {
+      options.input.pipe(child.stdin).on('error', () => {})
     }
-
-  })
+  });
 }
 
 // find work dirname by root patterns
@@ -88,11 +126,11 @@ export async function findWorkDirectory(
   const dirname = path.dirname(filePath)
   let patterns = [].concat(rootPatterns)
   try {
-    for(const pattern of patterns) {
+    for(const pattern of patterns){
       const dir = await findUp(async directory => {
-          const hasMatch = await findUp.exists(path.join(directory, pattern))
-          logger.log(`searching working directory: ${directory}, cwd: ${dirname}, pattern: ${pattern}, matches: ${hasMatch}`)
-          return hasMatch && directory
+        const hasMatch = await findUp.exists(path.join(directory, pattern))
+        logger.log(`searching working directory: ${directory}, cwd: ${dirname}, pattern: ${pattern}, matches: ${hasMatch}`)
+        return hasMatch && directory
       }, {type: 'directory', cwd: dirname})
 
 
@@ -119,7 +157,7 @@ export async function findCommand(command: string, workDir: string) {
 
 export function checkAnyFileExists(workDir: string, testPaths: string[]) {
   for (const testPath of testPaths) {
-    if (fs.existsSync(path.join(workDir , testPath))) {
+    if (fs.existsSync(path.join(workDir, testPath))) {
       return true
     }
   }
