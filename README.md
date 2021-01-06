@@ -17,6 +17,10 @@
 yarn global add diagnostic-languageserver
 ```
 
+> make sure your yarn's global bin path is include in `PATH`
+
+> for example `export PATH="$(yarn global bin):$PATH"`
+
 ## Config & Document
 
 languageserver config:
