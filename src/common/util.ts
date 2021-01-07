@@ -52,6 +52,8 @@ export async function executeFile(
     return arg
   }))
 
+  logger.log(`linter run args: ${JSON.stringify(args)}`)
+
   const result = await spawnAsync(
     command,
     args,
