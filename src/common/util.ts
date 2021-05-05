@@ -39,6 +39,9 @@ export async function executeFile(
     if (/%filename/.test(arg)) {
       return arg.replace(/%filename/g, path.basename(fpath))
     }
+    if (/%dirname/.test(arg)) {
+      return arg.replace(/%dirname/g, path.dirname(fpath))
+    }
     if (/%file/.test(arg)) {
       usePipe = false
       return arg.replace(/%file/g, fpath)
