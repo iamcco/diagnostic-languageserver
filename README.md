@@ -149,12 +149,13 @@ languageserver config:
 
 ## Args additional syntax
 
-`args: ["%text", "%filename", "%file", "%filepath", "%dirname", "%tempfile"]`
+`args: ["%text", "%filename", "%relativepath", "%file", "%filepath", "%dirname", "%tempfile"]`
 
 - `%filename` will replace with basename of file
 - `%text` will replace with file content
 - `%file` will replace with full path to the file and not use stdio
 - `%filepath` will replace with full path to the file
+- `%relativepath` will replace with relative path of file
 - `%dirname` will replace with dirname of file
 - `%tempfile` will replace with the full path to a temporary file written with the contents
   of the document and not use stdio; this file will automatically be deleted when the
