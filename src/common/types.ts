@@ -65,7 +65,7 @@ export interface IFormatterConfig {
   isStderr?: boolean
   doesWriteToFile?: boolean
   requiredFiles?: string[]
-  ignoreExitCode?: boolean
+  ignoreExitCode?: boolean | number[]
 }
 
 // initializationOptions config

@@ -46,9 +46,11 @@ async function handleFormat(
     {
       cwd: workDir
     }
-  )
+    )
   let output = '';
   if (!ignoreExitCode && code > 0) {
+    output = text
+  } else if (code > 0 && ignoreExitCode instanceof Array && ignoreExitCode.indexOf(code) === -1) {
     output = text
   } else if (config.doesWriteToFile) {
     output = fs.readFileSync(URI.parse(textDocument.uri).fsPath, 'utf8')
