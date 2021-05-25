@@ -135,7 +135,9 @@ languageserver config:
     "doesWriteToFile": false,                  // use if formatter doesn't support stdio. should be paired with `%file`
     "requiredFiles": [                         // only run formatter if any of these files exist. optional
       ".run_dartfmt",
-    ]
+    ],
+    "ignoreExitCode": false                    // ignore exit code. default false: exit code > 0 will not change the file.
+                                               // some formatter may exit with code > 0 so you need set it to true.
   }
 ```
 

@@ -20,6 +20,7 @@ async function handleFormat(
     isStdout,
     isStderr,
     args = [],
+    ignoreExitCode
   } = config
   const workDir = await findWorkDirectory(
     URI.parse(textDocument.uri).fsPath,
@@ -47,7 +48,7 @@ async function handleFormat(
     }
   )
   let output = '';
-  if (code > 0) {
+  if (!ignoreExitCode && code > 0) {
     output = text
   } else if (config.doesWriteToFile) {
     output = fs.readFileSync(URI.parse(textDocument.uri).fsPath, 'utf8')
