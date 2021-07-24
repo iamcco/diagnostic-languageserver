@@ -65,6 +65,9 @@ languageserver config:
     "offsetLine": 0,                                 // offsetline
     "offsetColumn": 0,                               // offsetColumn
     "sourceName": "shellcheck",                      // source name
+    "ignore": [".git", "dist/"]                      // ignore pattern same as `.gitignore`
+                                                     // don't forget to add `rootPatterns` when using `ignore`
+                                                     // it need workspace to filter
 
     // Using regular expressions:
     "formatLines": 1,                                // how much lines for formatPattern[0] to match
@@ -120,6 +123,7 @@ languageserver config:
 ```jsonc
 {
   "sh": "linterName",                          // filetype: linterName or linterName[]
+  "*": "linterName"                            // `*` is for all filetypes
 }
 ```
 
@@ -136,9 +140,12 @@ languageserver config:
     "requiredFiles": [                         // only run formatter if any of these files exist. optional
       ".run_dartfmt",
     ],
-    "ignoreExitCode": false                    // ignore exit code. default false: exit code > 0 will not change the file.
+    "ignoreExitCode": false,                   // ignore exit code. default false: exit code > 0 will not change the file.
                                                // some formatter may exit with code > 0 so you need set it to true or number[]
                                                // exit code array that you want to ignore.
+    "ignore": [".git", "dist/"]                // ignore pattern same as `.gitignore`
+                                               // don't forget to add `rootPatterns` when using `ignore`
+                                               // it need workspace to filter
   }
 ```
 
@@ -147,6 +154,7 @@ languageserver config:
 ```jsonc
 {
   "dart": "dartfmt",                          // filetype: formatterName or formatterName[]
+  "*": "linterName"                           // `*` is for all filetypes
 }
 ```
 

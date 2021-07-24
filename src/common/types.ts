@@ -13,6 +13,7 @@ export interface ILinterConfig {
   args?: Array<string|number>
   sourceName: string
   formatLines?: number
+  ignore?: string[]
   formatPattern: [string, {
     sourceName?: string
     sourceNameFilter?: boolean
@@ -66,6 +67,7 @@ export interface IFormatterConfig {
   doesWriteToFile?: boolean
   requiredFiles?: string[]
   ignoreExitCode?: boolean | number[]
+  ignore?: string[]
 }
 
 // initializationOptions config

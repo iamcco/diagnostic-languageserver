@@ -67,10 +67,10 @@ connection.onInitialize((param: InitializeParams) => {
 const handleDiagnostic = ( change: TextDocumentChangeEvent<TextDocument> ) => {
   const textDocument = change.document
   const { linters = {}, filetypes = {} } = config
-  if (!filetypes[textDocument.languageId]) {
+  if (!filetypes[textDocument.languageId] && !filetypes['*']) {
     return
   }
-  const linter = [].concat(filetypes[textDocument.languageId])
+  const linter = [].concat(filetypes[textDocument.languageId]).concat(filetypes['*'])
   const configItems = linter.map(l => linters[l]).filter(l => l)
   if (configItems.length === 0) {
     return
@@ -105,10 +105,10 @@ connection.onDocumentFormatting(async (
     return
   }
   const { formatters, formatFiletypes } = config
-  if (!formatFiletypes[doc.languageId]) {
+  if (!formatFiletypes[doc.languageId] && !formatFiletypes['*']) {
     return
   }
-  const formatterNames = [].concat(formatFiletypes[doc.languageId])
+  const formatterNames = [].concat(formatFiletypes[doc.languageId]).concat(formatFiletypes['*'])
   const formatterConfigs = formatterNames.map(n => formatters[n]).filter(n => n)
   if (formatterConfigs.length === 0) {
     return

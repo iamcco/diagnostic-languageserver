@@ -7,7 +7,8 @@ import {
 import { URI } from 'vscode-uri';
 import { Subscription, Subject, from, timer } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
-import { isAbsolute, join } from 'path';
+import { isAbsolute, join, relative } from 'path';
+import ig from 'ignore';
 
 import { waitMap } from '../common/observable';
 import { ILinterConfig, SecurityKey, ILinterResult } from '../common/types';
@@ -154,6 +155,7 @@ async function handleLinter (
     sourceName,
     isStdout,
     isStderr,
+    ignore,
     securities = {}
   } = config
   const diagnostics: Diagnostic[] = [];
@@ -177,6 +179,16 @@ async function handleLinter (
   try {
     const currentFile = URI.parse(textDocument.uri).fsPath
     const workDir = await findWorkDirectory(currentFile, rootPatterns)
+
+    // ignore file
+    const relPath = relative(workDir, currentFile)
+    try {
+      if (!isAbsolute(relPath) && ignore && ig().add(ignore).ignores(relPath)) {
+        return diagnostics
+      }
+    } catch (err) {
+      logger.error(`ignore error: ${err.message || err.name || err}`)
+    }
 
     logger.info(`found working directory ${workDir}`)
 

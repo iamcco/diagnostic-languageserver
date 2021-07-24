@@ -1,10 +1,13 @@
 import fs from 'fs'
 import { TextEdit, TextDocument, CancellationToken, Range, Position } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
+import ig from 'ignore';
 
 import { IFormatterConfig } from '../common/types';
 import { findWorkDirectory, findCommand, executeFile, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
+import { relative, isAbsolute } from 'path';
+import logger from '../common/logger';
 
 type Handle = (text: string) => Promise<string>
 
@@ -20,12 +23,24 @@ async function handleFormat(
     isStdout,
     isStderr,
     args = [],
-    ignoreExitCode
+    ignoreExitCode,
+    ignore
   } = config
   const workDir = await findWorkDirectory(
     URI.parse(textDocument.uri).fsPath,
     rootPatterns
   )
+  const currentFile = URI.parse(textDocument.uri).fsPath
+  const relPath = relative(workDir, currentFile)
+
+  try {
+    // ignore file
+    if (!isAbsolute(relPath) && ignore && ig().add(ignore).ignores(relPath)) {
+      return next(text)
+    }
+  } catch (err) {
+    logger.error(`ignore error: ${err.message || err.name || err}`)
+  }
 
   if (config.requiredFiles && config.requiredFiles.length) {
     if (!checkAnyFileExists(workDir, config.requiredFiles)) {
