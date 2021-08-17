@@ -61,7 +61,7 @@ async function handleFormat(
     {
       cwd: workDir
     }
-    )
+  )
   let output = '';
   if (!ignoreExitCode && code > 0) {
     output = text
@@ -96,7 +96,14 @@ export async function formatDocument(
       if (token.isCancellationRequested) {
         return
       }
-      return handleFormat(config, textDocument, text, res)
+      let newText = text;
+      try {
+        newText = await handleFormat(config, textDocument, text, res)
+      } catch (err) {
+        logger.error(`ignore error: ${err.message || err.name || err}`)
+        newText = await res(text)
+      }
+      return newText
     }
   }, async (text: string) => text)
 
