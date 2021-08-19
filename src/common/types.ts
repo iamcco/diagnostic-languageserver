@@ -25,6 +25,8 @@ export interface ILinterConfig {
     security: number
   }]
   securities?: ISecurities
+  offsetLine?: number
+  offsetColumn?: number
   offsetLineStart?: number
   offsetLineEnd?: number
   offsetColumnStart?: number

@@ -150,6 +150,8 @@ async function handleLinter (
     command,
     rootPatterns = [],
     args = [],
+    offsetLine = 0,
+    offsetColumn = 0,
     offsetLineStart = 0,
     offsetLineEnd = 0,
     offsetColumnStart = 0,
@@ -269,12 +271,12 @@ async function handleLinter (
         range: {
           start: {
             // line and character is base zero so need -1
-            line: sumNum(line, -1, offsetLineStart),
-            character: sumNum(column, -1, offsetColumnStart)
+            line: sumNum(line, -1, offsetLine + offsetLineStart),
+            character: sumNum(column, -1, offsetColumn + offsetColumnStart)
           },
           end: {
-            line: sumNum(endLine, -1, offsetLineEnd),
-            character: sumNum(endColumn, -1, offsetColumnEnd)
+            line: sumNum(endLine, -1, offsetLine + offsetLineEnd),
+            character: sumNum(endColumn, -1, offsetColumn + offsetColumnEnd)
           }
         },
         message: linterResult.message,
