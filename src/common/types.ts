@@ -27,6 +27,10 @@ export interface ILinterConfig {
   securities?: ISecurities
   offsetLine?: number
   offsetColumn?: number
+  offsetLineStart?: number
+  offsetLineEnd?: number
+  offsetColumnStart?: number
+  offsetColumnEnd?: number
   requiredFiles?: string[]
   parseJson?: {
     // Dot separated path. If empty, simply use the root.
