@@ -89,8 +89,9 @@ languageserver config:
 
     // Using JSON:
     "parseJson": {
-      "errorsRoot": "[0].messages",                 // dot separated path. Will default to whatever JSON is output
+      "errorsRoot": "[0].messages",                  // dot separated path. Will default to whatever JSON is output
                                                      // for more information see examples at https://lodash.com/docs/#get
+													 // %filepath will be replaced with full path to the file (like in `args`)
 
       // All of these support lodash.get syntax.
       "sourceName": "file",                          // propert that contains the `file`. Will default to the file being linted.
