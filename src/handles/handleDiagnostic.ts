@@ -132,7 +132,9 @@ function handleLinterJson(currentSourceName: string, output: string, config: ILi
   ? lodashGet(JSON.parse(output), errorsRoot, [])
     : JSON.parse(output)
 
-  return resultsFromJson.map<ILinterResult>(jsonObject => {
+  return resultsFromJson.filter(jsonObject => {
+    return null !== lodashGet(jsonObject, line)
+  }).map<ILinterResult>(jsonObject => {
     return {
       sourceName: sourceName ? lodashGet(jsonObject, sourceName) : currentSourceName,
       security: lodashGet(jsonObject, security),
