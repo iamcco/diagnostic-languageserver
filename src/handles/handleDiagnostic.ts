@@ -109,6 +109,12 @@ function formatStringWithObject<T extends Record<string, any> | any[]>(
   });
 }
 
+function replaceFilepath(errorsRoot: string | string[], fpath: string) {
+  return (typeof errorsRoot === 'string')
+    ? errorsRoot.replace('%filepath', fpath)
+    : errorsRoot.map(v => v.replace('%filepath', fpath))
+}
+
 function handleLinterJson(currentSourceName: string, output: string, config: ILinterConfig, fpath: string): ILinterResult[] {
   if (!config.parseJson) {
     throw new Error('missing parseJson')
@@ -116,6 +122,7 @@ function handleLinterJson(currentSourceName: string, output: string, config: ILi
 
   const {
     sourceName,
+    errorsRoot,
     line,
     column,
     endLine,
@@ -124,12 +131,8 @@ function handleLinterJson(currentSourceName: string, output: string, config: ILi
     message,
   } = config.parseJson
 
-  const errorsRoot = (typeof config.parseJson.errorsRoot === 'string')
-    ? config.parseJson.errorsRoot.replace('%filepath', fpath)
-    : config.parseJson.errorsRoot.map(v => v.replace('%filepath', fpath));
-
   const resultsFromJson: any[] = errorsRoot
-  ? lodashGet(JSON.parse(output), errorsRoot, [])
+    ? lodashGet(JSON.parse(output), replaceFilepath(errorsRoot, fpath), [])
     : JSON.parse(output)
 
   return resultsFromJson.filter(jsonObject => {
@@ -238,7 +241,7 @@ async function handleLinter (
     }
 
     let linterResults: ILinterResult[] = config.parseJson
-    ? handleLinterJson(sourceName, output, config, URI.parse(textDocument.uri).fsPath)
+      ? handleLinterJson(sourceName, output, config, URI.parse(textDocument.uri).fsPath)
       : handleLinterRegex(sourceName, output, config)
 
     // Check if we should filter based on the sourceName.
