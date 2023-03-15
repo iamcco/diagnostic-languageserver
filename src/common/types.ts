@@ -10,6 +10,7 @@ export interface ILinterConfig {
   isStdout?: boolean
   isStderr?: boolean
   debounce?: number
+  onSaveOnly?: boolean
   args?: Array<string|number>
   sourceName: string
   formatLines?: number
