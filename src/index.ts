@@ -64,14 +64,14 @@ connection.onInitialize((param: InitializeParams) => {
   };
 });
 
-const handleDiagnostic = ( change: TextDocumentChangeEvent<TextDocument> ) => {
+const handleDiagnostic = ( change: TextDocumentChangeEvent<TextDocument>, onSave: boolean ) => {
   const textDocument = change.document
   const { linters = {}, filetypes = {} } = config
   if (!filetypes[textDocument.languageId] && !filetypes['*']) {
     return
   }
   const linter = [].concat(filetypes[textDocument.languageId]).concat(filetypes['*'])
-  const configItems = linter.map(l => linters[l]).filter(l => l)
+  const configItems = linter.map(l => linters[l]).filter(l => (l && (onSave || !l.onSaveOnly)))
   if (configItems.length === 0) {
     return
   }
@@ -79,10 +79,14 @@ const handleDiagnostic = ( change: TextDocumentChangeEvent<TextDocument> ) => {
 }
 
 // document change or open
-documents.onDidChangeContent(handleDiagnostic);
+documents.onDidChangeContent((evt) => {
+    handleDiagnostic(evt, false)
+});
 
 // document will save
-documents.onDidSave(handleDiagnostic)
+documents.onDidSave((evt) => {
+    handleDiagnostic(evt, true)
+});
 
 documents.onDidClose((evt) => {
   diagnosticUnsubscribe(evt.document)

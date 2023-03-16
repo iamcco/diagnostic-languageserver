@@ -61,6 +61,7 @@ languageserver config:
     "isStdout": true,                                // use stdout output, default true
     "isStderr": false,                               // use stderr output, default false
     "debounce": 100,                                 // debounce time
+    "onSaveOnly": false,                             // linter is triggered only when file is saved
     "args": [ "--format=gcc", "-"],                  // args
     "offsetLine": 0,                                 // offsetline
     "offsetColumn": 0,                               // offsetColumn
