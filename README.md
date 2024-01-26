@@ -337,7 +337,19 @@ coc-settings.json:
 
 ## References
 
-- inspired by [efm-langserver](https://github.com/mattn/efm-langserver)
+Inspired by [efm-langserver](https://github.com/mattn/efm-langserver).
+
+| | diagnostic-languageserver | efm-langserver |
+| - | - | - |
+| linter | :white_check_mark: | :white_check_mark: |
+| formatter | :white_check_mark: | :white_check_mark: |
+| `node_modules/.bin` | :white_check_mark: | :o: |
+| spell "severity" correctly | [:o:][#83] | :white_check_mark: |
+| lint format match | regex | [errorformat] |
+| Language | Go | TypeScript |
+
+[errorformat]: https://vimhelp.org/quickfix.txt.html#errorformats
+[#83]: https://github.com/iamcco/diagnostic-languageserver/issues/83
 
 ### Buy Me A Coffee ☕️
 
